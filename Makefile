@@ -1,13 +1,13 @@
 #
 # Architectures:
-#       amd64   working
+#       arm32   working
 #       i386    todo
 #       arm64   todo
 #       arm32   todo
 #       riscv64 todo
 #       mips32  todo
 #
-PROG = bintrace hello-amd64-linux
+PROG = bintrace hello-arm32-linux
 LIBS = -lcapstone
 
 all:    $(PROG)
@@ -21,6 +21,6 @@ clean:
 bintrace: bintrace.o
 	$(CC) $(LDFLAGS) -o $@ $< $(LIBS)
 
-hello-amd64-linux: hello-amd64-linux.o
+hello-arm32-linux: hello-arm32-linux.o
 	ld -o $@ $<
 	objdump -D $@ > $@.dis

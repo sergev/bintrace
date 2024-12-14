@@ -33,6 +33,8 @@
 #include <sys/syscall.h>
 //#include <sys/personality.h> TODO
 #include <capstone/capstone.h>
+#include <asm/ptrace.h>
+#include <sys/prctl.h>
 
 // Handle for disassembler.
 csh disasm;
@@ -40,34 +42,43 @@ csh disasm;
 //
 // Print current CPU instruction.
 //
-void print_cpu_instruction(int child, unsigned long long address)
+void print_arm32_instruction(int child, unsigned address)
 {
     // Read opcode from child process.
-    // Max instruction size for x86-64 architecture is 16 bytes.
-    uint64_t code[2];
+    // Max instruction size for arm32 architecture is 4 bytes.
+    uint64_t code[1];
+    errno = 0;
     code[0] = ptrace(PTRACE_PEEKTEXT, child, (void*)address, NULL);
-    code[1] = ptrace(PTRACE_PEEKTEXT, child, (void*)(address + 8), NULL);
+    if (errno) {
+        perror("PTRACE_PEEKTEXT");
+        exit(-1);
+    }
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%016llx: ", address);
+    printf("0x%08x: ", address);
     if (count == 0) {
         printf("(unknown)\n");
     } else {
-        unsigned n;
-        for (n = 0; n < insn[0].size; n++) {
-            printf(" %02x", insn[0].bytes[n]);
-        }
-        while (n++ < 7) {
-            printf("   ");
+        switch (insn[0].size) {
+        case 4:
+            printf(" %04x", code[0]);
+            break;
+        case 2:
+            printf(" %02x    ", code[0] & 0xffff);
+            break;
+        default:
+            fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
+            perror("PTRACE_GETFPREGS");
+            exit(-1);
         }
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
-    fflush(stdout);
 }
 
+#if 0
 //
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
@@ -113,6 +124,25 @@ void print_cpu_registers(const struct user_regs_struct *cur)
 
     prev = *cur;
 }
+#define ARM_cpsr  uregs[16]
+#define ARM_pc        uregs[15]
+#define ARM_lr        uregs[14]
+#define ARM_sp        uregs[13]
+#define ARM_ip        uregs[12]
+#define ARM_fp        uregs[11]
+#define ARM_r10       uregs[10]
+#define ARM_r9        uregs[9]
+#define ARM_r8        uregs[8]
+#define ARM_r7        uregs[7]
+#define ARM_r6        uregs[6]
+#define ARM_r5        uregs[5]
+#define ARM_r4        uregs[4]
+#define ARM_r3        uregs[3]
+#define ARM_r2        uregs[2]
+#define ARM_r1        uregs[1]
+#define ARM_r0        uregs[0]
+#define ARM_ORIG_r0   uregs[17]
+#endif
 
 //
 // Get CPU state.
@@ -120,9 +150,11 @@ void print_cpu_registers(const struct user_regs_struct *cur)
 //
 void print_cpu_state(int child)
 {
-    struct user_regs_struct regs;
-    struct user_fpregs_struct fpregs;
+    struct user_regs regs;
+    struct user_fpregs fpregs;
 
+#if 0
+    errno = 0;
     if (ptrace(PTRACE_GETREGS, child, NULL, &regs) < 0) {
         perror("PTRACE_GETREGS");
         exit(-1);
@@ -130,13 +162,15 @@ void print_cpu_state(int child)
     print_cpu_registers(&regs);
 #if 0
     //TODO: print FP registers
+    errno = 0;
     if (ptrace(PTRACE_GETFPREGS, child, NULL, &fpregs) < 0) {
         perror("PTRACE_GETFPREGS");
         exit(-1);
     }
     print_fpregs(&fpregs);
 #endif
-    print_cpu_instruction(child, regs.rip);
+#endif
+    print_arm32_instruction(child, regs.ARM_pc);
 }
 
 //
@@ -191,12 +225,6 @@ bool child_alive()
 
 void trace(char *pathname)
 {
-    // Initialize disassembler.
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &disasm) != CS_ERR_OK) {
-        perror("cs_open");
-        exit(-1);
-    }
-
     // Create child.
     pid_t child = fork();
     if (child < 0) {
@@ -234,15 +262,25 @@ void trace(char *pathname)
         instr_count += 1;
 
         // Execute next CPU instruction.
+        fflush(stdout);
+        errno = 0;
         if (ptrace(PTRACE_SINGLESTEP, child, NULL, NULL) < 0) {
             perror("PTRACE_SINGLESTEP");
             exit(-1);
         }
     }
-    cs_close(&disasm);
 }
 
 int main()
 {
-    trace("./hello-amd64-linux");
+    // Initialize disassembler.
+    if (cs_open(CS_ARCH_ARM, CS_MODE_ARM, &disasm) != CS_ERR_OK) {
+        perror("cs_open");
+        exit(-1);
+    }
+
+    //TODO: prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0);
+    trace("./hello-arm32-linux");
+
+    cs_close(&disasm);
 }
