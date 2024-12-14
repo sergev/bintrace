@@ -1,11 +1,11 @@
 #
 # Architectures:
-#       amd64 in progress
-#       i386
-#       arm64
-#       arm32
-#       riscv64
-#       mips32
+#       amd64   working
+#       i386    todo
+#       arm64   todo
+#       arm32   todo
+#       riscv64 todo
+#       mips32  todo
 #
 PROG = bintrace hello-amd64-linux
 LIBS = -lcapstone
@@ -13,7 +13,7 @@ LIBS = -lcapstone
 all:    $(PROG)
 
 clean:
-	rm -f *.o $(PROG)
+	rm -f *.o *.dis *.trace $(PROG)
 
 %.o:    %.S
 	cpp $< | as -o $@ -
