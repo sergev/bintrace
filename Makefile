@@ -2,10 +2,10 @@
 # Architectures:
 #       arm32   working
 #       i386    todo
-#       arm64   todo
-#       arm32   todo
-#       riscv64 todo
-#       mips32  todo
+#       arm64   working
+#       arm32   no single-step in kernel
+#       riscv64 no single-step in kernel
+#       mips32  no single-step in kernel
 #
 PROG = bintrace hello-arm32-linux
 LIBS = -lcapstone

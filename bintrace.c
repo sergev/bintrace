@@ -232,8 +232,18 @@ void trace(char *pathname)
         fflush(stdout);
         errno = 0;
         if (ptrace(PTRACE_SINGLESTEP, child, NULL, NULL) < 0) {
-            perror("PTRACE_SINGLESTEP");
-            exit(-1);
+            if (errno != EIO) {
+                perror("PTRACE_SINGLESTEP");
+                exit(-1);
+            } else {
+                // Single stepping is not supported for this architecture.
+                // Use syscall tracing instead.
+                errno = 0;
+                if (ptrace(PTRACE_SYSCALL, child, NULL, NULL) < 0) {
+                    perror("PTRACE_SYSCALL");
+                    exit(-1);
+                }
+            }
         }
     }
 }
