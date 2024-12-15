@@ -33,10 +33,7 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
-//#include <sys/personality.h> TODO
 #include <capstone/capstone.h>
-#include <asm/ptrace.h>
-#include <sys/prctl.h>
 
 // Handle for disassembler.
 csh disasm;
@@ -80,12 +77,11 @@ void print_arm64_instruction(int child, unsigned long long address)
     }
 }
 
-#if 0
 //
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
-void print_cpu_registers(const struct user_regs_struct *cur)
+void print_arm64_registers(const struct user_regs_struct *cur)
 {
     static struct user_regs_struct prev;
 
@@ -93,58 +89,44 @@ void print_cpu_registers(const struct user_regs_struct *cur)
     if (cur->field != prev.field) { \
         printf("    " name " = %#llx\n", cur->field); \
     }
-    PRINT_FIELD("   rax", rax);
-    // Unused: orig_rax
-    PRINT_FIELD("   rbx", rbx);
-    PRINT_FIELD("   rcx", rcx);
-    PRINT_FIELD("   rdx", rdx);
-    PRINT_FIELD("   rbp", rbp);
-    PRINT_FIELD("   rsi", rsi);
-    PRINT_FIELD("   rdi", rdi);
-    PRINT_FIELD("   rsp", rsp);
 
-    PRINT_FIELD("    r8", r8 );
-    PRINT_FIELD("    r9", r9 );
-    PRINT_FIELD("   r10", r10);
-    PRINT_FIELD("   r11", r11);
-    PRINT_FIELD("   r12", r12);
-    PRINT_FIELD("   r13", r13);
-    PRINT_FIELD("   r14", r14);
-    PRINT_FIELD("   r15", r15);
-
-    PRINT_FIELD("    cs", cs);
-    PRINT_FIELD("    ss", ss);
-    PRINT_FIELD("    ds", ds);
-    PRINT_FIELD("    es", es);
-    PRINT_FIELD("    fs", fs);
-    PRINT_FIELD("    gs", gs);
-    // Unused: fs_base
-    // Unused: gs_base
-
-    PRINT_FIELD("eflags", eflags);
+    PRINT_FIELD("    r0", regs[0]);
+    PRINT_FIELD("    r1", regs[1]);
+    PRINT_FIELD("    r2", regs[2]);
+    PRINT_FIELD("    r3", regs[3]);
+    PRINT_FIELD("    r4", regs[4]);
+    PRINT_FIELD("    r5", regs[5]);
+    PRINT_FIELD("    r6", regs[6]);
+    PRINT_FIELD("    r7", regs[7]);
+    PRINT_FIELD("    r8", regs[8]);
+    PRINT_FIELD("    r9", regs[9]);
+    PRINT_FIELD("   r10", regs[10]);
+    PRINT_FIELD("   r11", regs[11]);
+    PRINT_FIELD("   r12", regs[12]);
+    PRINT_FIELD("   r13", regs[13]);
+    PRINT_FIELD("   r14", regs[14]);
+    PRINT_FIELD("   r15", regs[15]);
+    PRINT_FIELD("   r16", regs[16]);
+    PRINT_FIELD("   r17", regs[17]);
+    PRINT_FIELD("   r18", regs[18]);
+    PRINT_FIELD("   r19", regs[19]);
+    PRINT_FIELD("   r20", regs[20]);
+    PRINT_FIELD("   r21", regs[21]);
+    PRINT_FIELD("   r22", regs[22]);
+    PRINT_FIELD("   r23", regs[23]);
+    PRINT_FIELD("   r24", regs[24]);
+    PRINT_FIELD("   r25", regs[25]);
+    PRINT_FIELD("   r26", regs[26]);
+    PRINT_FIELD("   r27", regs[27]);
+    PRINT_FIELD("   r28", regs[28]);
+    PRINT_FIELD("   r29", regs[29]);
+    PRINT_FIELD("   r30", regs[30]);
+    PRINT_FIELD("    sp", sp);
+    PRINT_FIELD("pstate", pstate);
 #undef PRINT_FIELD
 
     prev = *cur;
 }
-#define ARM_cpsr  uregs[16]
-#define ARM_pc        uregs[15]
-#define ARM_lr        uregs[14]
-#define ARM_sp        uregs[13]
-#define ARM_ip        uregs[12]
-#define ARM_fp        uregs[11]
-#define ARM_r10       uregs[10]
-#define ARM_r9        uregs[9]
-#define ARM_r8        uregs[8]
-#define ARM_r7        uregs[7]
-#define ARM_r6        uregs[6]
-#define ARM_r5        uregs[5]
-#define ARM_r4        uregs[4]
-#define ARM_r3        uregs[3]
-#define ARM_r2        uregs[2]
-#define ARM_r1        uregs[1]
-#define ARM_r0        uregs[0]
-#define ARM_ORIG_r0   uregs[17]
-#endif
 
 //
 // Get CPU state.
@@ -161,7 +143,7 @@ void print_cpu_state(int child)
         perror("PTRACE_GETREGSET");
         exit(-1);
     }
-    //TODO: print_cpu_registers(&regs);
+    print_arm64_registers(&regs);
 #if 0
     //TODO: print FP registers
     errno = 0;
@@ -235,12 +217,11 @@ void trace(char *pathname)
     }
 
     if (child == 0) {
-        //TODO: personality(ADDR_NO_RANDOMIZE);
-        printf("Starting program: %s\n", pathname);
-
         //
         // Child: start target program.
         //
+        printf("Starting program: %s\n", pathname);
+
         errno = 0;
         if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0) {
             perror("PTRACE_TRACEME");
@@ -281,7 +262,6 @@ int main()
         exit(-1);
     }
 
-    //TODO: prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0);
     trace("./hello-arm64-linux");
 
     cs_close(&disasm);
