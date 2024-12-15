@@ -28,6 +28,12 @@
 #include "trace.h"
 
 //
+// On syscall, ptrace() stops twice: right before execution and after it.
+// With this flag we ignore the first stop.
+//
+static bool before_syscall;
+
+//
 // Print current CPU instruction.
 //
 static void print_arm64_instruction(int child, unsigned long long address)
@@ -63,6 +69,11 @@ static void print_arm64_instruction(int child, unsigned long long address)
         }
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
+    }
+
+    if ((uint32_t)code[0] == 0xd4000001) {
+        // Next stop will be "before" a syscall: ignore it.
+        before_syscall = true;
     }
 }
 
@@ -126,6 +137,13 @@ void print_cpu_state(int child)
     struct user_regs_struct regs;
     struct user_fpsimd_struct fpregs;
     struct iovec iov = { &regs, sizeof(regs) };
+
+    if (before_syscall) {
+        // We are right before execution of a syscall.
+        // Ignore this stop and wait for another one.
+        before_syscall = false;
+        return;
+    }
 
     errno = 0;
     if (ptrace(PTRACE_GETREGSET, child, (void*)NT_PRSTATUS, &iov) < 0) {
