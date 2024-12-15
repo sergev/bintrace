@@ -4,3 +4,5 @@ hello-*-linux
 *.o
 *.dis
 *.trace
+*.c-
+*.cpp-

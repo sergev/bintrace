@@ -27,13 +27,14 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <sys/ptrace.h>
+#include <sys/uio.h>
+#include <elf.h>
 #include <sys/types.h>
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
 #include <capstone/capstone.h>
 #include <asm/ptrace.h>
-#include <sys/prctl.h>
 
 // Handle for disassembler.
 csh disasm;
@@ -43,11 +44,9 @@ csh disasm;
 //
 void print_arm32_instruction(int child, unsigned address)
 {
-printf("pc = 0x%08x\n", address);
-#if 0
     // Read opcode from child process.
     // Max instruction size for arm32 architecture is 4 bytes.
-    uint64_t code[1];
+    uint32_t code[1];
     errno = 0;
     code[0] = ptrace(PTRACE_PEEKTEXT, child, (void*)address, NULL);
     if (errno) {
@@ -67,7 +66,7 @@ printf("pc = 0x%08x\n", address);
             printf(" %04x", code[0]);
             break;
         case 2:
-            printf(" %02x    ", code[0] & 0xffff);
+            printf(" %02x    ", (uint16_t)code[0]);
             break;
         default:
             fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
@@ -77,7 +76,6 @@ printf("pc = 0x%08x\n", address);
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
-#endif
 }
 
 #if 0
@@ -85,7 +83,7 @@ printf("pc = 0x%08x\n", address);
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
-void print_cpu_registers(const struct user_regs_struct *cur)
+void print_arm32_registers(const struct user_regs_struct *cur)
 {
     static struct user_regs_struct prev;
 
@@ -154,13 +152,14 @@ void print_cpu_state(int child)
 {
     struct user_regs regs;
     struct user_fpregs fpregs;
+    struct iovec iov = { &regs, sizeof(regs) };
 
     errno = 0;
-    if (ptrace(PTRACE_GETREGS, child, NULL, &regs) < 0) {
-        perror("PTRACE_GETREGS");
+    if (ptrace(PTRACE_GETREGSET, child, (void*)NT_PRSTATUS, &iov) < 0) {
+        perror("PTRACE_GETREGSET");
         exit(-1);
     }
-    //print_cpu_registers(&regs);
+    //print_arm32_registers(&regs);
 #if 0
     //TODO: print FP registers
     errno = 0;
@@ -279,7 +278,6 @@ int main()
         exit(-1);
     }
 
-    //TODO: prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0);
     trace("./hello-arm32-linux");
 
     cs_close(&disasm);
