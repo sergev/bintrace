@@ -27,6 +27,8 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <sys/ptrace.h>
+#include <sys/uio.h>
+#include <elf.h>
 #include <sys/types.h>
 #include <sys/user.h>
 #include <sys/wait.h>
@@ -42,10 +44,10 @@ csh disasm;
 //
 // Print current CPU instruction.
 //
-void print_arm32_instruction(int child, unsigned address)
+void print_arm64_instruction(int child, unsigned long long address)
 {
     // Read opcode from child process.
-    // Max instruction size for arm32 architecture is 4 bytes.
+    // Max instruction size for arm64 architecture is 4 bytes.
     uint64_t code[1];
     errno = 0;
     code[0] = ptrace(PTRACE_PEEKTEXT, child, (void*)address, NULL);
@@ -57,16 +59,16 @@ void print_arm32_instruction(int child, unsigned address)
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%08x: ", address);
+    printf("0x%016llx: ", address);
     if (count == 0) {
         printf("(unknown)\n");
     } else {
         switch (insn[0].size) {
         case 4:
-            printf(" %04x", code[0]);
+            printf(" %04x", (uint32_t)code[0]);
             break;
         case 2:
-            printf(" %02x    ", code[0] & 0xffff);
+            printf(" %02x    ", (uint16_t)code[0]);
             break;
         default:
             fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
@@ -150,16 +152,16 @@ void print_cpu_registers(const struct user_regs_struct *cur)
 //
 void print_cpu_state(int child)
 {
-    struct user_regs regs;
-    struct user_fpregs fpregs;
+    struct user_regs_struct regs;
+    struct user_fpsimd_struct fpregs;
+    struct iovec iov = { &regs, sizeof(regs) };
 
-#if 0
     errno = 0;
-    if (ptrace(PTRACE_GETREGS, child, NULL, &regs) < 0) {
-        perror("PTRACE_GETREGS");
+    if (ptrace(PTRACE_GETREGSET, child, (void*)NT_PRSTATUS, &iov) < 0) {
+        perror("PTRACE_GETREGSET");
         exit(-1);
     }
-    print_cpu_registers(&regs);
+    //TODO: print_cpu_registers(&regs);
 #if 0
     //TODO: print FP registers
     errno = 0;
@@ -169,8 +171,7 @@ void print_cpu_state(int child)
     }
     print_fpregs(&fpregs);
 #endif
-#endif
-    print_arm32_instruction(child, regs.ARM_pc);
+    print_arm64_instruction(child, regs.pc);
 }
 
 //
@@ -234,6 +235,9 @@ void trace(char *pathname)
     }
 
     if (child == 0) {
+        //TODO: personality(ADDR_NO_RANDOMIZE);
+        printf("Starting program: %s\n", pathname);
+
         //
         // Child: start target program.
         //
@@ -242,9 +246,7 @@ void trace(char *pathname)
             perror("PTRACE_TRACEME");
             exit(-1);
         }
-        //TODO: personality(ADDR_NO_RANDOMIZE);
         char *const argv[] = { pathname, NULL };
-        printf("Starting program: %s\n", pathname);
         execv(pathname, argv);
 
         // Failed to execute.
@@ -274,13 +276,13 @@ void trace(char *pathname)
 int main()
 {
     // Initialize disassembler.
-    if (cs_open(CS_ARCH_ARM, CS_MODE_ARM, &disasm) != CS_ERR_OK) {
+    if (cs_open(CS_ARCH_ARM64, CS_MODE_ARM, &disasm) != CS_ERR_OK) {
         perror("cs_open");
         exit(-1);
     }
 
     //TODO: prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0);
-    trace("./hello-arm32-linux");
+    trace("./hello-arm64-linux");
 
     cs_close(&disasm);
 }
