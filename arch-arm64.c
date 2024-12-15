@@ -19,21 +19,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
 #include <errno.h>
-#include <inttypes.h>
-#include <unistd.h>
 #include <sys/ptrace.h>
 #include <sys/uio.h>
 #include <elf.h>
-#include <sys/types.h>
 #include <sys/user.h>
-#include <sys/wait.h>
-#include <sys/syscall.h>
-#include <capstone/capstone.h>
 
 #include "trace.h"
 
