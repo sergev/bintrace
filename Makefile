@@ -1,9 +1,9 @@
 #
 # Architectures:
 #       x86_64=amd64    working
+#       arm64=aarch64   working
+#       arm32=armv7l    no single stepping
 #       i386            todo
-#       arm64=aarch64   todo
-#       arm32=armv7l    todo
 #       riscv64         todo
 #       mips32          todo
 #

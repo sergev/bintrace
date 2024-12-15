@@ -6,7 +6,7 @@ csh disasm;
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("Usage: bintrace ./file");
+        printf("Usage: bintrace ./file\n");
         exit(-1);
     }
 
