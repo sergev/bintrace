@@ -1,12 +1,3 @@
-#
-# Architectures:
-#       x86_64=amd64    working
-#       arm64=aarch64   working
-#       arm32=armv7l    no single stepping
-#       i386            todo
-#       riscv64         todo
-#       mips32          todo
-#
 PROG    = bintrace
 LIBS    = -lcapstone
 OBJS    = main.o trace.o

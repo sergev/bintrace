@@ -67,3 +67,18 @@ Hello world!
 0x0000000000401028:  0f 05                  syscall
 Process exited normally.
 ```
+
+# OSes and CPU architectures
+
+Support of single-stepping per operating system and machine architecture:
+
+Architecture | Linux | FreeBSD | MacOS
+-------------|-------|---------|------
+amd64/x86-64 | yes   | yes     | yes
+arm32        | -     | yes     | -
+arm64        | yes   | yes     | yes
+i386         | yes   | yes     | -
+mips32       | -     | yes     | -
+mips64       | -     | yes     | -
+powerpc64    | yes   | yes     | yes
+riscv64      | -     | yes     | -
