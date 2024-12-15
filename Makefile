@@ -17,6 +17,11 @@ ifeq ($(ARCH), x86_64)
     TEST = hello-amd64-linux
     OBJS += arch-amd64.o
 endif
+ifeq ($(ARCH), aarch64)
+    # ARM64 architecture
+    TEST = hello-arm64-linux
+    OBJS += arch-arm64.o
+endif
 ifeq ($(ARCH), armv7l)
     # ARM32 architecture
     TEST = hello-arm32-linux

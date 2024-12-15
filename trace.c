@@ -96,6 +96,8 @@ void trace(char *pathname)
         instr_count += 1;
 
         // Execute next CPU instruction.
+        fflush(stdout);
+        errno = 0;
         if (ptrace(PTRACE_SINGLESTEP, child, NULL, NULL) < 0) {
             if (errno != EIO) {
                 perror("PTRACE_SINGLESTEP");
@@ -111,5 +113,4 @@ void trace(char *pathname)
             }
         }
     }
-    cs_close(&disasm);
 }

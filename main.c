@@ -15,6 +15,8 @@ int main(int argc, char *argv[])
     int status = cs_open(CS_ARCH_X86, CS_MODE_64, &disasm);
 #elif __ARM_ARCH_ISA_ARM
     int status = cs_open(CS_ARCH_ARM, CS_MODE_ARM, &disasm);
+#elif __ARM_ARCH_ISA_A64
+    int status = cs_open(CS_ARCH_ARM64, CS_MODE_ARM, &disasm);
 #else
 #   error "This architecture is not supported"
 #endif
