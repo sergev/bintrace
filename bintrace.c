@@ -78,71 +78,39 @@ void print_arm32_instruction(int child, unsigned address)
     }
 }
 
-#if 0
 //
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
-void print_arm32_registers(const struct user_regs_struct *cur)
+void print_arm32_registers(const struct user_regs *cur)
 {
-    static struct user_regs_struct prev;
+    static struct user_regs prev;
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#llx\n", cur->field); \
+        printf("    " name " = %#lx\n", cur->field); \
     }
-    PRINT_FIELD("   rax", rax);
-    // Unused: orig_rax
-    PRINT_FIELD("   rbx", rbx);
-    PRINT_FIELD("   rcx", rcx);
-    PRINT_FIELD("   rdx", rdx);
-    PRINT_FIELD("   rbp", rbp);
-    PRINT_FIELD("   rsi", rsi);
-    PRINT_FIELD("   rdi", rdi);
-    PRINT_FIELD("   rsp", rsp);
-
-    PRINT_FIELD("    r8", r8 );
-    PRINT_FIELD("    r9", r9 );
-    PRINT_FIELD("   r10", r10);
-    PRINT_FIELD("   r11", r11);
-    PRINT_FIELD("   r12", r12);
-    PRINT_FIELD("   r13", r13);
-    PRINT_FIELD("   r14", r14);
-    PRINT_FIELD("   r15", r15);
-
-    PRINT_FIELD("    cs", cs);
-    PRINT_FIELD("    ss", ss);
-    PRINT_FIELD("    ds", ds);
-    PRINT_FIELD("    es", es);
-    PRINT_FIELD("    fs", fs);
-    PRINT_FIELD("    gs", gs);
-    // Unused: fs_base
-    // Unused: gs_base
-
-    PRINT_FIELD("eflags", eflags);
+    PRINT_FIELD("    r0", ARM_r0);
+    // Unused: ARM_ORIG_r0
+    PRINT_FIELD("    r1", ARM_r1);
+    PRINT_FIELD("    r2", ARM_r2);
+    PRINT_FIELD("    r3", ARM_r3);
+    PRINT_FIELD("    r4", ARM_r4);
+    PRINT_FIELD("    r5", ARM_r5);
+    PRINT_FIELD("    r6", ARM_r6);
+    PRINT_FIELD("    r7", ARM_r7);
+    PRINT_FIELD("    r8", ARM_r8);
+    PRINT_FIELD("    r9", ARM_r9);
+    PRINT_FIELD("   r10", ARM_r10);
+    PRINT_FIELD("    fp", ARM_fp);
+    PRINT_FIELD("    ip", ARM_ip);
+    PRINT_FIELD("    sp", ARM_sp);
+    PRINT_FIELD("    lr", ARM_lr);
+    PRINT_FIELD("  cpsr", ARM_cpsr);
 #undef PRINT_FIELD
 
     prev = *cur;
 }
-#define ARM_cpsr  uregs[16]
-#define ARM_pc        uregs[15]
-#define ARM_lr        uregs[14]
-#define ARM_sp        uregs[13]
-#define ARM_ip        uregs[12]
-#define ARM_fp        uregs[11]
-#define ARM_r10       uregs[10]
-#define ARM_r9        uregs[9]
-#define ARM_r8        uregs[8]
-#define ARM_r7        uregs[7]
-#define ARM_r6        uregs[6]
-#define ARM_r5        uregs[5]
-#define ARM_r4        uregs[4]
-#define ARM_r3        uregs[3]
-#define ARM_r2        uregs[2]
-#define ARM_r1        uregs[1]
-#define ARM_r0        uregs[0]
-#define ARM_ORIG_r0   uregs[17]
-#endif
 
 //
 // Get CPU state.
@@ -159,7 +127,7 @@ void print_cpu_state(int child)
         perror("PTRACE_GETREGSET");
         exit(-1);
     }
-    //print_arm32_registers(&regs);
+    print_arm32_registers(&regs);
 #if 0
     //TODO: print FP registers
     errno = 0;
