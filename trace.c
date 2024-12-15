@@ -59,12 +59,6 @@ static bool child_alive()
 
 void trace(char *pathname)
 {
-    // Initialize disassembler.
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &disasm) != CS_ERR_OK) {
-        perror("cs_open");
-        exit(-1);
-    }
-
     // Create child.
     pid_t child = fork();
     if (child < 0) {
@@ -77,14 +71,14 @@ void trace(char *pathname)
         //
         // Child: start target program.
         //
+        printf("Starting program: %s\n", pathname);
+
         errno = 0;
         if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0) {
             perror("PTRACE_TRACEME");
             exit(-1);
         }
-        //TODO: personality(ADDR_NO_RANDOMIZE);
         char *const argv[] = { pathname, NULL };
-        printf("Starting program: %s\n", pathname);
         execv(pathname, argv);
 
         // Failed to execute.
@@ -103,8 +97,18 @@ void trace(char *pathname)
 
         // Execute next CPU instruction.
         if (ptrace(PTRACE_SINGLESTEP, child, NULL, NULL) < 0) {
-            perror("PTRACE_SINGLESTEP");
-            exit(-1);
+            if (errno != EIO) {
+                perror("PTRACE_SINGLESTEP");
+                exit(-1);
+            } else {
+                // Single stepping is not supported for this architecture.
+                // Use syscall tracing instead.
+                errno = 0;
+                if (ptrace(PTRACE_SYSCALL, child, NULL, NULL) < 0) {
+                    perror("PTRACE_SYSCALL");
+                    exit(-1);
+                }
+            }
         }
     }
     cs_close(&disasm);

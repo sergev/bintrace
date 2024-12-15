@@ -1,7 +1,7 @@
 bintrace
 demo.sh
-hello-amd64-macos
-hello-amd64-linux
+hello-*-macos
+hello-*-linux
 *.o
 *.dis
 *.trace
