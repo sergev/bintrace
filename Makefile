@@ -1,26 +1,37 @@
 #
 # Architectures:
-#       amd64   working
-#       i386    todo
-#       arm64   todo
-#       arm32   todo
-#       riscv64 todo
-#       mips32  todo
+#       x86_64=amd64    working
+#       i386            todo
+#       arm64=aarch64   todo
+#       arm32=armv7l    todo
+#       riscv64         todo
+#       mips32          todo
 #
-PROG = bintrace hello-amd64-linux
-LIBS = -lcapstone
+PROG    = bintrace
+LIBS    = -lcapstone
+OBJS    = main.o trace.o
+ARCH    := $(shell uname -m)
 
-all:    $(PROG)
+ifeq ($(ARCH), x86_64)
+    TEST = hello-amd64-linux
+    OBJS += arch-amd64.o
+endif
+
+all:    $(PROG) $(TEST) demo.sh
 
 clean:
-	rm -f *.o *.dis *.trace $(PROG)
+	rm -f *.o *.dis *.trace $(PROG) $(TEST) demo.sh
 
 %.o:    %.S
 	cpp $< | as -o $@ -
 
-bintrace: bintrace.o
-	$(CC) $(LDFLAGS) -o $@ $< $(LIBS)
+$(PROG): $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 
-hello-amd64-linux: hello-amd64-linux.o
+$(TEST): $(TEST).o
 	ld -o $@ $<
 	objdump -D $@ > $@.dis
+
+demo.sh:
+	echo "./$(PROG) ./$(TEST)" > $@
+	chmod +x $@
