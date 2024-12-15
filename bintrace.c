@@ -31,7 +31,6 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
-//#include <sys/personality.h> TODO
 #include <capstone/capstone.h>
 #include <asm/ptrace.h>
 #include <sys/prctl.h>
@@ -44,6 +43,8 @@ csh disasm;
 //
 void print_arm32_instruction(int child, unsigned address)
 {
+printf("pc = 0x%08x\n", address);
+#if 0
     // Read opcode from child process.
     // Max instruction size for arm32 architecture is 4 bytes.
     uint64_t code[1];
@@ -76,6 +77,7 @@ void print_arm32_instruction(int child, unsigned address)
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
+#endif
 }
 
 #if 0
@@ -153,13 +155,12 @@ void print_cpu_state(int child)
     struct user_regs regs;
     struct user_fpregs fpregs;
 
-#if 0
     errno = 0;
     if (ptrace(PTRACE_GETREGS, child, NULL, &regs) < 0) {
         perror("PTRACE_GETREGS");
         exit(-1);
     }
-    print_cpu_registers(&regs);
+    //print_cpu_registers(&regs);
 #if 0
     //TODO: print FP registers
     errno = 0;
@@ -168,7 +169,6 @@ void print_cpu_state(int child)
         exit(-1);
     }
     print_fpregs(&fpregs);
-#endif
 #endif
     print_arm32_instruction(child, regs.ARM_pc);
 }
@@ -237,14 +237,14 @@ void trace(char *pathname)
         //
         // Child: start target program.
         //
+        printf("Starting program: %s\n", pathname);
+
         errno = 0;
         if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0) {
             perror("PTRACE_TRACEME");
             exit(-1);
         }
-        //TODO: personality(ADDR_NO_RANDOMIZE);
         char *const argv[] = { pathname, NULL };
-        printf("Starting program: %s\n", pathname);
         execv(pathname, argv);
 
         // Failed to execute.
