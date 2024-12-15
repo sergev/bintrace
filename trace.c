@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
+#include <sys/personality.h>
 
 #include "trace.h"
 
@@ -72,6 +73,9 @@ void trace(char *pathname)
         // Child: start target program.
         //
         printf("Starting program: %s\n", pathname);
+
+        // Disable address-space-layout randomization.
+        personality(ADDR_NO_RANDOMIZE);
 
         errno = 0;
         if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0) {
