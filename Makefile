@@ -27,6 +27,11 @@ ifeq ($(ARCH), armv7l)
     TEST = hello-arm32-linux
     OBJS += arch-arm32.o
 endif
+ifeq ($(ARCH), riscv64)
+    # RISC-V 64-bit architecture
+    TEST = hello-riscv64-linux
+    OBJS += arch-riscv64.o
+endif
 
 all:    $(PROG) $(TEST) demo.sh
 

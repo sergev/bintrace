@@ -17,6 +17,17 @@ The following architectures are supported:
 Unfortunately, Linux kernel on arm32 processor does not support single-stepping.
 So only syscalls can be traced.
 
+# Pre-requisites
+
+For Ubuntu:
+```
+    sudo apt install libcapstone-dev
+```
+For MacOS:
+```
+    brew install capstone
+```
+
 # Build
 
 To build the `bintrace` utility and demo files, use:
