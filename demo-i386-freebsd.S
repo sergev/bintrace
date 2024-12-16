@@ -1,10 +1,10 @@
 //
 // Output "Hello world!" to standard output.
-// For ARM32 architecture with GNU assembler, using Linux EABI syscalls.
+// For Intel i386 architecture with GNU assembler, using FreeBSD syscalls.
 //
-// Assemble with:
+// Assemble with :
 // cpp hello.S | as -o hello.o -
-// ld hello.o -o hello
+// ld -o hello hello.o
 //
 // Copyright (c) 2024 Serge Vakulenko
 //
@@ -31,16 +31,18 @@
         .text
         .globl  _start
 _start:
-        mov     r7, #SYS_write          // syscall write(fd, message, size)
-        mov     r0, #1                  // file descriptor 1 - stdout
-        movw    r1, #:lower16:message   // low 16-bits of message address
-        movt    r1, #:upper16:message   // high 16-bits of message address
-        mov     r2, #13                 // size
-        svc     #0                      // do system call
+        push    $13                 // size
+        push    $message            // pointer to message
+        push    $1                  // fd - stdout
+        mov     $ SYS_write, %eax   // syscall write(fd, message, size)
+        push    %eax
+        int     $0x80               // do syscall
+        add     $16, %esp
 
-        mov     r7, #SYS_exit           // syscall exit(status)
-        mov     r0, #0                  // status - 0
-        svc     #0                      // do system call
+        push    $0                  // status - 0
+        mov     $ SYS_exit, %eax    // syscall exit(status)
+        push    %eax
+        int     $0x80               // do syscall
 
 message:
         .ascii  "Hello world!\n"

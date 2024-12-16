@@ -30,13 +30,16 @@
 //
 // Print current CPU instruction.
 //
-static void print_arm64_instruction(int child, unsigned long long address)
+static void print_i386_instruction(int child, unsigned long address)
 {
     // Read opcode from child process.
-    // Max instruction size for arm64 architecture is 4 bytes.
-    uint64_t code[1];
+    // Max instruction size for i386 architecture is 16 bytes.
+    uint32_t code[4];
     errno = 0;
     code[0] = ptrace(PT_READ_I, child, (void*)address, 0);
+    code[1] = ptrace(PT_READ_I, child, (void*)(address + 4), 0);
+    code[2] = ptrace(PT_READ_I, child, (void*)(address + 8), 0);
+    code[3] = ptrace(PT_READ_I, child, (void*)(address + 12), 0);
     if (errno) {
         perror("PT_READ_I");
         exit(-1);
@@ -45,20 +48,16 @@ static void print_arm64_instruction(int child, unsigned long long address)
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%016llx: ", address);
+    printf("0x%08lx: ", address);
     if (count == 0) {
         printf("(unknown)\n");
     } else {
-        switch (insn[0].size) {
-        case 4:
-            printf(" %04x", (uint32_t)code[0]);
-            break;
-        case 2:
-            printf(" %02x    ", (uint16_t)code[0]);
-            break;
-        default:
-            fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
-            exit(-1);
+        unsigned n;
+        for (n = 0; n < insn[0].size; n++) {
+            printf(" %02x", insn[0].bytes[n]);
+        }
+        while (n++ < 7) {
+            printf("   ");
         }
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
@@ -69,50 +68,33 @@ static void print_arm64_instruction(int child, unsigned long long address)
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
-static void print_arm64_registers(const struct gpregs *cur)
+static void print_i386_registers(const struct reg *cur)
 {
-    static struct gpregs prev;
+    static struct reg prev;
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#lx\n", cur->field); \
+        printf("    " name " = %#x\n", cur->field); \
     }
 
-    PRINT_FIELD("    r0", gp_x[0]);
-    PRINT_FIELD("    r1", gp_x[1]);
-    PRINT_FIELD("    r2", gp_x[2]);
-    PRINT_FIELD("    r3", gp_x[3]);
-    PRINT_FIELD("    r4", gp_x[4]);
-    PRINT_FIELD("    r5", gp_x[5]);
-    PRINT_FIELD("    r6", gp_x[6]);
-    PRINT_FIELD("    r7", gp_x[7]);
-    PRINT_FIELD("    r8", gp_x[8]);
-    PRINT_FIELD("    r9", gp_x[9]);
-    PRINT_FIELD("   r10", gp_x[10]);
-    PRINT_FIELD("   r11", gp_x[11]);
-    PRINT_FIELD("   r12", gp_x[12]);
-    PRINT_FIELD("   r13", gp_x[13]);
-    PRINT_FIELD("   r14", gp_x[14]);
-    PRINT_FIELD("   r15", gp_x[15]);
-    PRINT_FIELD("   r16", gp_x[16]);
-    PRINT_FIELD("   r17", gp_x[17]);
-    PRINT_FIELD("   r18", gp_x[18]);
-    PRINT_FIELD("   r19", gp_x[19]);
-    PRINT_FIELD("   r20", gp_x[20]);
-    PRINT_FIELD("   r21", gp_x[21]);
-    PRINT_FIELD("   r22", gp_x[22]);
-    PRINT_FIELD("   r23", gp_x[23]);
-    PRINT_FIELD("   r24", gp_x[24]);
-    PRINT_FIELD("   r25", gp_x[25]);
-    PRINT_FIELD("   r26", gp_x[26]);
-    PRINT_FIELD("   r27", gp_x[27]);
-    PRINT_FIELD("   r28", gp_x[28]);
-    PRINT_FIELD("   r29", gp_x[29]);
-
-    PRINT_FIELD("    lr", gp_lr);
-    PRINT_FIELD("    sp", gp_sp);
-    PRINT_FIELD("   elr", gp_elr);
-    PRINT_FIELD("  spsr", gp_spsr);
+    PRINT_FIELD("   eax", r_eax);
+    PRINT_FIELD("   ebx", r_ebx);
+    PRINT_FIELD("   ecx", r_ecx);
+    PRINT_FIELD("   edx", r_edx);
+    PRINT_FIELD("   esi", r_esi);
+    PRINT_FIELD("   edi", r_edi);
+    PRINT_FIELD("   ebp", r_ebp);
+    PRINT_FIELD("   esp", r_esp);
+    PRINT_FIELD("    cs", r_cs);
+    PRINT_FIELD("    ss", r_ss);
+    PRINT_FIELD("    ds", r_ds);
+    PRINT_FIELD("    es", r_es);
+    PRINT_FIELD("    fs", r_fs);
+    PRINT_FIELD("    gs", r_gs);
+    // Unused: r_isp
+    // Unused: r_trapno
+    // Unused: r_err
+    PRINT_FIELD("eflags", r_eflags);
 #undef PRINT_FIELD
 
     prev = *cur;
@@ -124,17 +106,17 @@ static void print_arm64_registers(const struct gpregs *cur)
 //
 void print_cpu_state(int child)
 {
-    struct gpregs regs;
-    struct fpregs fpregs;
+    struct reg regs;
 
     errno = 0;
     if (ptrace(PT_GETREGS, child, (caddr_t)&regs, NT_PRSTATUS) < 0) {
         perror("PT_GETREGS");
         exit(-1);
     }
-    print_arm64_registers(&regs);
+    print_i386_registers(&regs);
 #if 0
     //TODO: print FP registers
+    struct fpregs fpregs;
     errno = 0;
     if (ptrace(PT_GETFPREGS, child, &fpregs, 0) < 0) {
         perror("PT_GETFPREGS");
@@ -142,5 +124,5 @@ void print_cpu_state(int child)
     }
     print_fpregs(&fpregs);
 #endif
-    print_arm64_instruction(child, regs.gp_elr);
+    print_i386_instruction(child, regs.r_eip);
 }

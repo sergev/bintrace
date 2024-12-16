@@ -33,10 +33,15 @@ static void print_i386_instruction(int child, unsigned long address)
     // Read opcode from child process.
     // Max instruction size for i386 architecture is 16 bytes.
     uint32_t code[4];
+    errno = 0;
     code[0] = ptrace(PTRACE_PEEKTEXT, child, (void*)address, NULL);
     code[1] = ptrace(PTRACE_PEEKTEXT, child, (void*)(address + 4), NULL);
     code[2] = ptrace(PTRACE_PEEKTEXT, child, (void*)(address + 8), NULL);
     code[3] = ptrace(PTRACE_PEEKTEXT, child, (void*)(address + 12), NULL);
+    if (errno) {
+        perror("PTRACE_PEEKTEXT");
+        exit(-1);
+    }
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
@@ -55,7 +60,6 @@ static void print_i386_instruction(int child, unsigned long address)
         printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
-    fflush(stdout);
 }
 
 //

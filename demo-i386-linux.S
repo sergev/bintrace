@@ -31,15 +31,15 @@
         .text
         .globl  _start
 _start:
-	mov     $ SYS_write, %eax   // syscall write(fd, message, size)
-	mov     $1, %ebx            // fd - stdout
-	lea     message, %ecx       // pointer to message
-	mov     $13, %edx           // size
-	int     $0x80               // do syscall
+        mov     $ SYS_write, %eax   // syscall write(fd, message, size)
+        mov     $1, %ebx            // fd - stdout
+        lea     message, %ecx       // pointer to message
+        mov     $13, %edx           // size
+        int     $0x80               // do syscall
 
-	mov     $ SYS_exit, %eax    // syscall exit(status)
-	xor     %ebx, %ebx          // status - 0
-	int     $0x80               // do syscall
+        mov     $ SYS_exit, %eax    // syscall exit(status)
+        xor     %ebx, %ebx          // status - 0
+        int     $0x80               // do syscall
 
 message:
-	.ascii  "Hello world!\n"
+        .ascii  "Hello world!\n"

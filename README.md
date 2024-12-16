@@ -27,6 +27,10 @@ For MacOS:
 ```
     brew install capstone
 ```
+For FreeBSD:
+```
+    doas pkg install capstone
+```
 
 # Build
 
