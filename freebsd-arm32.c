@@ -27,6 +27,8 @@
 
 #include "trace.h"
 
+uint32_t last_opcode;
+
 //
 // Print current CPU instruction.
 //
@@ -41,6 +43,7 @@ static void print_arm32_instruction(int child, unsigned address)
         perror("PT_READ_I");
         exit(-1);
     }
+    last_opcode = code[0];
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
@@ -100,6 +103,56 @@ static void print_arm32_registers(const struct reg *cur)
 }
 
 //
+// Detect STREX instruction.
+// For example:
+//      e1820f93   strex r0, r3, [r2]
+//                       rd, rt, [rn]
+// Bits:
+//      3322 2222 2222 1111 1111 11
+//      1098-7654-3210-9876-5432-1098-7654-3210
+//      e    1    8    2    0    f    9    3
+//      1110 0001 1000 0010 0000 1111 1001 0011
+//           1111 1  1                1111
+//           \_/\_/  | \__/ \__/      \__/ \__/
+//            0  3   0  rn   rd        9    rt
+//                 strex
+//
+static bool is_strex()
+{
+    return (last_opcode & 0xf9000f0) == 0x1800090;
+}
+
+//
+// Clear result of STREX, as if it succeeded.
+//
+// strex rd, rt, [rn]
+//
+static void hack_strex(int child, struct reg *regs)
+{
+    unsigned rd = (last_opcode >> 12) & 0xf;
+    unsigned rt = last_opcode & 0xf;
+    unsigned rn = (last_opcode >> 16) & 0xf;
+
+    if (rd < 13 && rt < 13 && rn < 13 && regs->r[rd] != 0) {
+        unsigned rt_value = regs->r[rt];
+        unsigned rn_value = regs->r[rn];
+        printf("   hack strex: write 0x%08x to [0x%08x]\n", rt_value, rn_value);
+        regs->r[rd] = 0;
+        errno = 0;
+        if (ptrace(PT_SETREGS, child, (caddr_t)regs, NT_PRSTATUS) < 0) {
+            perror("PT_SETREGS");
+            exit(-1);
+        }
+        errno = 0;
+        ptrace(PT_WRITE_D, child, (void*)rn_value, rt_value);
+        if (errno) {
+            perror("PT_WRITE_D");
+            exit(-1);
+        }
+    }
+}
+
+//
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
@@ -112,6 +165,10 @@ void print_cpu_state(int child)
         perror("PT_GETREGS");
         exit(-1);
     }
+    if (is_strex()) {
+        hack_strex(child, &regs);
+    }
+
     print_arm32_registers(&regs);
 #if 0
     //TODO: print FP registers
