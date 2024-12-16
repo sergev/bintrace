@@ -1,7 +1,8 @@
 bintrace
 demo.sh
-hello-*-macos
-hello-*-linux
+demo-*-macos
+demo-*-linux
+demo-*-freebsd
 *.o
 *.dis
 *.trace
