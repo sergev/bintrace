@@ -36,6 +36,11 @@ ifeq ($(OS), FreeBSD)
     CFLAGS += -I/usr/local/include
     LIBS += -L/usr/local/lib
     BRANDELF = brandelf -t FreeBSD
+    ifeq ($(ARCH), amd64)
+        # FreeBSD on Intel 64-bit architecture
+        TEST = demo-amd64-freebsd
+        OBJS += trace-freebsd.o freebsd-amd64.o
+    endif
     ifeq ($(ARCH), arm64)
         # FreeBSD on ARM64 architecture
         TEST = demo-arm64-freebsd

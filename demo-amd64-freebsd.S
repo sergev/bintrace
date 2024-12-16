@@ -1,6 +1,6 @@
 //
 // Output "Hello world!" to standard output.
-// For x86-64 architecture with GNU assembler, using Linux syscalls.
+// For x86-64 architecture with GNU assembler, using FreeBSD syscalls.
 //
 // Assemble with :
 // cpp hello.S | as -o hello.o -
