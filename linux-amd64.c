@@ -72,9 +72,9 @@ static void print_amd64_registers(const struct user_regs_struct *cur)
     PRINT_FIELD("   rbx", rbx);
     PRINT_FIELD("   rcx", rcx);
     PRINT_FIELD("   rdx", rdx);
-    PRINT_FIELD("   rbp", rbp);
     PRINT_FIELD("   rsi", rsi);
     PRINT_FIELD("   rdi", rdi);
+    PRINT_FIELD("   rbp", rbp);
     PRINT_FIELD("   rsp", rsp);
 
     PRINT_FIELD("    r8", r8 );
@@ -86,8 +86,8 @@ static void print_amd64_registers(const struct user_regs_struct *cur)
     PRINT_FIELD("   r14", r14);
     PRINT_FIELD("   r15", r15);
 
-    PRINT_FIELD("    cs", cs);
     PRINT_FIELD("    ss", ss);
+    PRINT_FIELD("    cs", cs);
     PRINT_FIELD("    ds", ds);
     PRINT_FIELD("    es", es);
     PRINT_FIELD("    fs", fs);

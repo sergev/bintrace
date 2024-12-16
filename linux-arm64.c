@@ -89,39 +89,40 @@ static void print_arm64_registers(const struct user_regs_struct *cur)
         printf("    " name " = %#llx\n", cur->field); \
     }
 
-    PRINT_FIELD("    r0", regs[0]);
-    PRINT_FIELD("    r1", regs[1]);
-    PRINT_FIELD("    r2", regs[2]);
-    PRINT_FIELD("    r3", regs[3]);
-    PRINT_FIELD("    r4", regs[4]);
-    PRINT_FIELD("    r5", regs[5]);
-    PRINT_FIELD("    r6", regs[6]);
-    PRINT_FIELD("    r7", regs[7]);
-    PRINT_FIELD("    r8", regs[8]);
-    PRINT_FIELD("    r9", regs[9]);
-    PRINT_FIELD("   r10", regs[10]);
-    PRINT_FIELD("   r11", regs[11]);
-    PRINT_FIELD("   r12", regs[12]);
-    PRINT_FIELD("   r13", regs[13]);
-    PRINT_FIELD("   r14", regs[14]);
-    PRINT_FIELD("   r15", regs[15]);
-    PRINT_FIELD("   r16", regs[16]);
-    PRINT_FIELD("   r17", regs[17]);
-    PRINT_FIELD("   r18", regs[18]);
-    PRINT_FIELD("   r19", regs[19]);
-    PRINT_FIELD("   r20", regs[20]);
-    PRINT_FIELD("   r21", regs[21]);
-    PRINT_FIELD("   r22", regs[22]);
-    PRINT_FIELD("   r23", regs[23]);
-    PRINT_FIELD("   r24", regs[24]);
-    PRINT_FIELD("   r25", regs[25]);
-    PRINT_FIELD("   r26", regs[26]);
-    PRINT_FIELD("   r27", regs[27]);
-    PRINT_FIELD("   r28", regs[28]);
-    PRINT_FIELD("   r29", regs[29]);
-    PRINT_FIELD("   r30", regs[30]);
+    PRINT_FIELD("    x0", regs[0]);
+    PRINT_FIELD("    x1", regs[1]);
+    PRINT_FIELD("    x2", regs[2]);
+    PRINT_FIELD("    x3", regs[3]);
+    PRINT_FIELD("    x4", regs[4]);
+    PRINT_FIELD("    x5", regs[5]);
+    PRINT_FIELD("    x6", regs[6]);
+    PRINT_FIELD("    x7", regs[7]);
+    PRINT_FIELD("    x8", regs[8]);
+    PRINT_FIELD("    x9", regs[9]);
+    PRINT_FIELD("   x10", regs[10]);
+    PRINT_FIELD("   x11", regs[11]);
+    PRINT_FIELD("   x12", regs[12]);
+    PRINT_FIELD("   x13", regs[13]);
+    PRINT_FIELD("   x14", regs[14]);
+    PRINT_FIELD("   x15", regs[15]);
+    PRINT_FIELD("   x16", regs[16]);
+    PRINT_FIELD("   x17", regs[17]);
+    PRINT_FIELD("   x18", regs[18]);
+    PRINT_FIELD("   x19", regs[19]);
+    PRINT_FIELD("   x20", regs[20]);
+    PRINT_FIELD("   x21", regs[21]);
+    PRINT_FIELD("   x22", regs[22]);
+    PRINT_FIELD("   x23", regs[23]);
+    PRINT_FIELD("   x24", regs[24]);
+    PRINT_FIELD("   x25", regs[25]);
+    PRINT_FIELD("   x26", regs[26]);
+    PRINT_FIELD("   x27", regs[27]);
+    PRINT_FIELD("   x28", regs[28]);
+    PRINT_FIELD("   x29", regs[29]);
+    PRINT_FIELD("   x30", regs[30]);
+
     PRINT_FIELD("    sp", sp);
-    PRINT_FIELD("pstate", pstate);
+    PRINT_FIELD("  spsr", pstate);
 #undef PRINT_FIELD
 
     prev = *cur;

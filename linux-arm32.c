@@ -90,8 +90,8 @@ static void print_arm32_registers(const struct user_regs *cur)
     PRINT_FIELD("    r8", ARM_r8);
     PRINT_FIELD("    r9", ARM_r9);
     PRINT_FIELD("   r10", ARM_r10);
-    PRINT_FIELD("    fp", ARM_fp);
-    PRINT_FIELD("    ip", ARM_ip);
+    PRINT_FIELD("   r11", ARM_fp);
+    PRINT_FIELD("   r12", ARM_ip);
     PRINT_FIELD("    sp", ARM_sp);
     PRINT_FIELD("    lr", ARM_lr);
     PRINT_FIELD("  cpsr", ARM_cpsr);

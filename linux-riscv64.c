@@ -72,40 +72,43 @@ static void print_riscv64_registers(const struct user_regs_struct *cur)
     if (cur->field != prev.field) { \
         printf("    " name " = %#lx\n", cur->field); \
     }
-    PRINT_FIELD("   a0", a0);
-    PRINT_FIELD("   a1", a1);
-    PRINT_FIELD("   a2", a2);
-    PRINT_FIELD("   a3", a3);
-    PRINT_FIELD("   a4", a4);
-    PRINT_FIELD("   a5", a5);
-    PRINT_FIELD("   a6", a6);
-    PRINT_FIELD("   a7", a7);
 
-    PRINT_FIELD("   t0", t0);
-    PRINT_FIELD("   t1", t1);
-    PRINT_FIELD("   t2", t2);
-    PRINT_FIELD("   t3", t3);
-    PRINT_FIELD("   t4", t4);
-    PRINT_FIELD("   t5", t5);
-    PRINT_FIELD("   t6", t6);
+    PRINT_FIELD("   x1", ra);
+    PRINT_FIELD("   x2", sp);
+    PRINT_FIELD("   x3", gp);
+    PRINT_FIELD("   x4", tp);
 
-    PRINT_FIELD("   s0", s0);
-    PRINT_FIELD("   s1", s1);
-    PRINT_FIELD("   s2", s2);
-    PRINT_FIELD("   s3", s3);
-    PRINT_FIELD("   s4", s4);
-    PRINT_FIELD("   s5", s5);
-    PRINT_FIELD("   s6", s6);
-    PRINT_FIELD("   s7", s7);
-    PRINT_FIELD("   s8", s8);
-    PRINT_FIELD("   s9", s9);
-    PRINT_FIELD("   s10", s10);
-    PRINT_FIELD("   s11", s11);
+    PRINT_FIELD("   x5", t0);
+    PRINT_FIELD("   x6", t1);
+    PRINT_FIELD("   x7", t2);
 
-    PRINT_FIELD("   ra", ra);
-    PRINT_FIELD("   sp", sp);
-    PRINT_FIELD("   gp", gp);
-    PRINT_FIELD("   tp", tp);
+    PRINT_FIELD("   x8", s0); // fp
+    PRINT_FIELD("   x9", s1);
+
+    PRINT_FIELD("  x10", a0);
+    PRINT_FIELD("  x11", a1);
+    PRINT_FIELD("  x12", a2);
+    PRINT_FIELD("  x13", a3);
+    PRINT_FIELD("  x14", a4);
+    PRINT_FIELD("  x15", a5);
+    PRINT_FIELD("  x16", a6);
+    PRINT_FIELD("  x17", a7);
+
+    PRINT_FIELD("  x18", s2);
+    PRINT_FIELD("  x19", s3);
+    PRINT_FIELD("  x20", s4);
+    PRINT_FIELD("  x21", s5);
+    PRINT_FIELD("  x22", s6);
+    PRINT_FIELD("  x23", s7);
+    PRINT_FIELD("  x24", s8);
+    PRINT_FIELD("  x25", s9);
+    PRINT_FIELD("  x26", s10);
+    PRINT_FIELD("  x27", s11);
+
+    PRINT_FIELD("  x28", t3);
+    PRINT_FIELD("  x29", t4);
+    PRINT_FIELD("  x30", t5);
+    PRINT_FIELD("  x31", t6);
 #undef PRINT_FIELD
 
     prev = *cur;

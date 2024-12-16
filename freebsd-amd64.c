@@ -83,9 +83,9 @@ static void print_amd64_registers(const struct reg *cur)
     PRINT_FIELD("   rbx", r_rbx);
     PRINT_FIELD("   rcx", r_rcx);
     PRINT_FIELD("   rdx", r_rdx);
-    PRINT_FIELD("   rbp", r_rbp);
     PRINT_FIELD("   rsi", r_rsi);
     PRINT_FIELD("   rdi", r_rdi);
+    PRINT_FIELD("   rbp", r_rbp);
     PRINT_FIELD("   rsp", r_rsp);
 
     PRINT_FIELD("    r8", r_r8);
@@ -97,13 +97,14 @@ static void print_amd64_registers(const struct reg *cur)
     PRINT_FIELD("   r14", r_r14);
     PRINT_FIELD("   r15", r_r15);
 
-    PRINT_FIELD("    cs", r_cs);
     PRINT_FIELD("    ss", r_ss);
+    PRINT_FIELD("    cs", r_cs);
     PRINT_FLD32("    ds", r_ds);
     PRINT_FLD32("    es", r_es);
     PRINT_FLD32("    fs", r_fs);
     PRINT_FLD32("    gs", r_gs);
-    PRINT_FIELD("rflags", r_rflags);
+
+    PRINT_FIELD("eflags", r_rflags);
     // Unused: r_trapno
     // Unused: r_err
 
