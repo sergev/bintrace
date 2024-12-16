@@ -41,15 +41,20 @@ ifeq ($(OS), FreeBSD)
         TEST = demo-amd64-freebsd
         OBJS += trace-freebsd.o freebsd-amd64.o
     endif
+    ifeq ($(ARCH), i386)
+        # FreeBSD on Intel 32-bit architecture
+        TEST = demo-i386-freebsd
+        OBJS += trace-freebsd.o freebsd-i386.o
+    endif
     ifeq ($(ARCH), arm64)
         # FreeBSD on ARM64 architecture
         TEST = demo-arm64-freebsd
         OBJS += trace-freebsd.o freebsd-arm64.o
     endif
-    ifeq ($(ARCH), i386)
-        # FreeBSD on Intel 32-bit architecture
-        TEST = demo-i386-freebsd
-        OBJS += trace-freebsd.o freebsd-i386.o
+    ifeq ($(ARCH), arm)
+        # FreeBSD on ARM32 architecture
+        TEST = demo-arm32-freebsd
+        OBJS += trace-freebsd.o freebsd-arm32.o
     endif
 endif
 
