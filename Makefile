@@ -11,6 +11,11 @@ ifeq ($(OS), Linux)
         TEST = demo-amd64-linux
         OBJS += trace-linux.o linux-amd64.o
     endif
+    ifeq ($(ARCH), i686)
+        # Linux on Intel 32-bit architecture
+        TEST = demo-i386-linux
+        OBJS += trace-linux.o linux-i386.o
+    endif
     ifeq ($(ARCH), aarch64)
         # Linux on ARM64 architecture
         TEST = demo-arm64-linux

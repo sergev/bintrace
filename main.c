@@ -13,6 +13,8 @@ int main(int argc, char *argv[])
     // Initialize disassembler.
 #if __x86_64__
     int status = cs_open(CS_ARCH_X86, CS_MODE_64, &disasm);
+#elif __i386__
+    int status = cs_open(CS_ARCH_X86, CS_MODE_32, &disasm);
 #elif __ARM_ARCH_ISA_ARM
     int status = cs_open(CS_ARCH_ARM, CS_MODE_ARM, &disasm);
 #elif __ARM_ARCH_ISA_A64
