@@ -11,11 +11,12 @@ It uses `ptrace()` system call. For now it can run only on Linux.
 The following architectures are supported:
 
  * x86_64 aka amd64
+ * i386
  * arm64 aka aarch64
  * arm32 (limited features)
 
-Unfortunately, Linux kernel on arm32 processor does not support single-stepping.
-So only syscalls can be traced.
+Unfortunately, Linux kernel does not support single-stepping on arm32
+and riscv64 processors. So only syscalls can be traced.
 
 # Pre-requisites
 
