@@ -57,6 +57,20 @@ ifeq ($(OS), FreeBSD)
         OBJS += trace-freebsd.o freebsd-arm32.o
     endif
 endif
+ifeq ($(OS), Darwin)
+    CFLAGS += -I/opt/homebrew/include
+    LIBS += -L/opt/homebrew/lib
+    ifeq ($(ARCH), x86_64)
+        # MacOS on Intel 64-bit architecture
+        TEST = demo-amd64-macos
+        OBJS += trace-macos.o macos-amd64.o
+    endif
+    ifeq ($(ARCH), arm64)
+        # MacOS on Apple ARM64 processor
+        TEST = demo-arm64-macos
+        OBJS += trace-macos.o macos-arm64.o
+    endif
+endif
 
 all:    $(PROG) $(TEST) demo.sh
 

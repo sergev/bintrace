@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
-#include <sys/procctl.h>
 
 #include "trace.h"
 
@@ -95,10 +94,6 @@ void trace(char *pathname)
         //
         printf("Starting program: %s\n", pathname);
 
-        // Disable address-space-layout randomization.
-        int data = PROC_ASLR_FORCE_DISABLE;
-        procctl(P_PID, 0, PROC_ASLR_CTL, &data);
-
         errno = 0;
         if (ptrace(PT_TRACE_ME, 0, NULL, 0) < 0) {
             perror("PT_TRACE_ME");
@@ -125,18 +120,8 @@ void trace(char *pathname)
         fflush(stdout);
         errno = 0;
         if (ptrace(PT_STEP, child, NULL, 0) < 0) {
-            if (errno != EIO) {
-                perror("PT_STEP");
-                exit(-1);
-            } else {
-                // Single stepping is not supported for this architecture.
-                // Use syscall tracing instead.
-                errno = 0;
-                if (ptrace(PT_SYSCALL, child, NULL, 0) < 0) {
-                    perror("PT_SYSCALL");
-                    exit(-1);
-                }
-            }
+            perror("PT_STEP");
+            exit(-1);
         }
     }
 }

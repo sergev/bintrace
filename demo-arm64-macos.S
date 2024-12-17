@@ -1,4 +1,11 @@
 //
+// Output "Hello world!" to standard output.
+// For ARM64 architecture with GNU assembler, using MacOS syscalls.
+//
+// Assemble with:
+// cpp hello.S | as -o hello.o -
+// ld hello.o -o hello
+//
 // Copyright (c) 2024 Serge Vakulenko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,9 +26,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <capstone/capstone.h>
+#include <sys/syscall.h>
 
-extern csh disasm;
+        .text
+        .align  2
+        .globl  _main
+_main:
+        mov     x16, #SYS_write                 // syscall write(fd, message, size)
+        mov     x0, #1                          // file descriptor 1 - stdout
+        adrp    x1, message@PAGE                // high 20 bits of message address
+        add     x1, x1, :lo12:message@PAGEOFF   // low 12 bits of message address
+        mov     x2, 13                          // size
+        svc     0x80                            // do system call
 
-void trace(char *pathname);
-void print_cpu_state(int child);
+        mov     x16, #SYS_exit                  // syscall exit(status)
+        mov     x0, #0                          // status - 0
+        svc     0x80                            // do system call
+
+message:
+        .ascii  "Hello world!\n"
