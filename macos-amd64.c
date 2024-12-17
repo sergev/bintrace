@@ -30,6 +30,8 @@
 extern task_t macos_port;
 extern thread_act_t macos_child;
 
+//#define PAGE_ALIGN(addr) (vm_address_t)((uintptr_t)(addr) & (~(vm_page_size - 1)))
+
 //
 // Print current CPU instruction.
 //
@@ -38,6 +40,12 @@ static void print_amd64_instruction(int child, unsigned long long address)
 //TODO: read user code
 //printf("0x%016llx:\n", address);
     // Read opcode from child process.
+//    kern_return_t status = vm_protect(macos_port, PAGE_ALIGN(address), vm_page_size, false, VM_PROT_READ | VM_PROT_EXECUTE);
+//    if (status != KERN_SUCCESS) {
+//        printf("vm_protect failed: %s\n", mach_error_string(status));
+//        return;
+//    }
+
     // Max instruction size for x86-64 architecture is 16 bytes.
     uint64_t code[2];
     mach_msg_type_number_t got_nbytes;

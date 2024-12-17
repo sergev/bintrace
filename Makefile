@@ -61,6 +61,7 @@ endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
     LIBS += -sectcreate __TEXT __info_plist ./app.plist
+    TESTLIBS += -static -no_pie
     #TODO: BRANDELF = codesign -s $(file < ~/.my_codesign_identity)
     DEMO = sudo ./$(PROG)
     ifeq ($(ARCH), x86_64)
@@ -88,7 +89,7 @@ $(PROG): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 
 $(TEST): $(TEST).o
-	ld -o $@ $<
+	ld -o $@ $< $(TESTLIBS)
 	$(BRANDELF) $@
 	objdump -D $@ > $@.dis
 

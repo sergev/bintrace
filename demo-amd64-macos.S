@@ -30,8 +30,8 @@
 
         .text
         .align  2
-        .globl  _main
-_main:
+        .globl  start
+start:
         mov     $0x2000000|SYS_write, %rax  // syscall write(fd, message, size)
         mov     $1, %rdi                    // fd - stdout
         lea     message(%rip), %rsi         // pointer to message
