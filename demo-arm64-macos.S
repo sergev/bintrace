@@ -30,8 +30,8 @@
 
         .text
         .align  2
-        .globl  _main
-_main:
+        .globl  start
+start:
         mov     x16, #SYS_write                 // syscall write(fd, message, size)
         mov     x0, #1                          // file descriptor 1 - stdout
         adrp    x1, message@PAGE                // high 20 bits of message address
