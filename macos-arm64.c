@@ -27,18 +27,26 @@
 
 #include "trace.h"
 
+extern thread_act_t macos_child;
+
 //
 // Print current CPU instruction.
 //
 static void print_arm64_instruction(int child, unsigned long long address)
 {
+//TODO: read user code
+printf("0x%016llx:\n", address);
     // Read opcode from child process.
     // Max instruction size for arm64 architecture is 4 bytes.
-    uint64_t code[1];
-    errno = 0;
-    code[0] = ptrace(PT_READ_I, child, (void*)address, 0);
-    if (errno) {
-        perror("PT_READ_I");
+    uint32_t code[1];
+    mach_msg_type_number_t got_nbytes;
+    kern_return_t status = vm_read(macos_child, address, sizeof(code), (vm_offset_t*)code, &got_nbytes);
+    if (status != KERN_SUCCESS) {
+        printf("vm_read failed: %s\n", mach_error_string(status));
+        exit(-1);
+    }
+    if (got_nbytes != sizeof(code)) {
+        printf("vm_read: got wrong amount\n");
         exit(-1);
     }
 
@@ -138,7 +146,6 @@ static void print_arm64_registers(const arm_thread_state64_t *cur)
 //
 void print_cpu_state(int child)
 {
-    extern thread_act_t macos_child;
     arm_thread_state64_t regs;
     mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
 
@@ -165,7 +172,5 @@ void print_cpu_state(int child)
     }
     print_fpregs(&fpregs);
 #endif
-    //TODO
-    printf("0x%016jx:\n", (uintptr_t)arm_thread_state64_get_pc(regs));
-    //print_arm64_instruction(child, arm_thread_state_get_pc(regs));
+    print_arm64_instruction(child, arm_thread_state64_get_pc(regs));
 }
