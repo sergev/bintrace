@@ -122,7 +122,7 @@ static void print_arm64_registers(const struct user_regs_struct *cur)
     PRINT_FIELD("   x30", regs[30]);
 
     PRINT_FIELD("    sp", sp);
-    PRINT_FIELD("  spsr", pstate);
+    PRINT_FIELD("  cpsr", pstate);
 #undef PRINT_FIELD
 
     prev = *cur;

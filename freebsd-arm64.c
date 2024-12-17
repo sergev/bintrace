@@ -112,7 +112,7 @@ static void print_arm64_registers(const struct gpregs *cur)
 
     PRINT_FIELD("    sp", gp_sp);
     PRINT_FIELD("   elr", gp_elr);
-    PRINT_FIELD("  spsr", gp_spsr);
+    PRINT_FIELD("  cpsr", gp_spsr);
 #undef PRINT_FIELD
 
     prev = *cur;
