@@ -23,10 +23,10 @@
 #include <sys/ptrace.h>
 #include <sys/uio.h>
 #include <sys/user.h>
+#include <mach/mach.h>
 
 #include "trace.h"
 
-#if 0 // TODO
 //
 // Print current CPU instruction.
 //
@@ -69,55 +69,52 @@ static void print_arm64_instruction(int child, unsigned long long address)
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
-static void print_arm64_registers(const struct gpregs *cur)
+static void print_arm64_registers(const arm_thread_state64_t *cur)
 {
-    static struct gpregs prev;
+    static arm_thread_state64_t prev;
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#lx\n", cur->field); \
+        printf("    " name " = %#llx\n", cur->field); \
     }
 
-    PRINT_FIELD("    x0", gp_x[0]);
-    PRINT_FIELD("    x1", gp_x[1]);
-    PRINT_FIELD("    x2", gp_x[2]);
-    PRINT_FIELD("    x3", gp_x[3]);
-    PRINT_FIELD("    x4", gp_x[4]);
-    PRINT_FIELD("    x5", gp_x[5]);
-    PRINT_FIELD("    x6", gp_x[6]);
-    PRINT_FIELD("    x7", gp_x[7]);
-    PRINT_FIELD("    x8", gp_x[8]);
-    PRINT_FIELD("    x9", gp_x[9]);
-    PRINT_FIELD("   x10", gp_x[10]);
-    PRINT_FIELD("   x11", gp_x[11]);
-    PRINT_FIELD("   x12", gp_x[12]);
-    PRINT_FIELD("   x13", gp_x[13]);
-    PRINT_FIELD("   x14", gp_x[14]);
-    PRINT_FIELD("   x15", gp_x[15]);
-    PRINT_FIELD("   x16", gp_x[16]);
-    PRINT_FIELD("   x17", gp_x[17]);
-    PRINT_FIELD("   x18", gp_x[18]);
-    PRINT_FIELD("   x19", gp_x[19]);
-    PRINT_FIELD("   x20", gp_x[20]);
-    PRINT_FIELD("   x21", gp_x[21]);
-    PRINT_FIELD("   x22", gp_x[22]);
-    PRINT_FIELD("   x23", gp_x[23]);
-    PRINT_FIELD("   x24", gp_x[24]);
-    PRINT_FIELD("   x25", gp_x[25]);
-    PRINT_FIELD("   x26", gp_x[26]);
-    PRINT_FIELD("   x27", gp_x[27]);
-    PRINT_FIELD("   x28", gp_x[28]);
-    PRINT_FIELD("   x29", gp_x[29]);
-    PRINT_FIELD("   x30", gp_lr);
+    PRINT_FIELD("    x0", __x[0]);
+    PRINT_FIELD("    x1", __x[1]);
+    PRINT_FIELD("    x2", __x[2]);
+    PRINT_FIELD("    x3", __x[3]);
+    PRINT_FIELD("    x4", __x[4]);
+    PRINT_FIELD("    x5", __x[5]);
+    PRINT_FIELD("    x6", __x[6]);
+    PRINT_FIELD("    x7", __x[7]);
+    PRINT_FIELD("    x8", __x[8]);
+    PRINT_FIELD("    x9", __x[9]);
+    PRINT_FIELD("   x10", __x[10]);
+    PRINT_FIELD("   x11", __x[11]);
+    PRINT_FIELD("   x12", __x[12]);
+    PRINT_FIELD("   x13", __x[13]);
+    PRINT_FIELD("   x14", __x[14]);
+    PRINT_FIELD("   x15", __x[15]);
+    PRINT_FIELD("   x16", __x[16]);
+    PRINT_FIELD("   x17", __x[17]);
+    PRINT_FIELD("   x18", __x[18]);
+    PRINT_FIELD("   x19", __x[19]);
+    PRINT_FIELD("   x20", __x[20]);
+    PRINT_FIELD("   x21", __x[21]);
+    PRINT_FIELD("   x22", __x[22]);
+    PRINT_FIELD("   x23", __x[23]);
+    PRINT_FIELD("   x24", __x[24]);
+    PRINT_FIELD("   x25", __x[25]);
+    PRINT_FIELD("   x26", __x[26]);
+    PRINT_FIELD("   x27", __x[27]);
+    PRINT_FIELD("   x28", __x[28]);
+    printf("        fp = %#jx\n", (uintptr_t)arm_thread_state64_get_fp(*cur));
+    printf("        lr = %#jx\n", (uintptr_t)arm_thread_state64_get_lr(*cur));
+    printf("        sp = %#jx\n", (uintptr_t)arm_thread_state64_get_sp(*cur));
+    printf("      cpsr = %#x\n", cur->__cpsr);
 
-    PRINT_FIELD("    sp", gp_sp);
-    PRINT_FIELD("   elr", gp_elr);
-    PRINT_FIELD("  spsr", gp_spsr);
 #undef PRINT_FIELD
-
     prev = *cur;
 }
-#endif
 
 //
 // Get CPU state.
@@ -125,12 +122,12 @@ static void print_arm64_registers(const struct gpregs *cur)
 //
 void print_cpu_state(int child)
 {
-#if 0 // TODO
-    struct gpregs regs;
+    extern thread_act_t macos_child;
+    arm_thread_state64_t regs;
+    mach_msg_type_number_t sc = ARM_THREAD_STATE64_COUNT;
 
-    errno = 0;
-    if (ptrace(PT_GETREGS, child, (caddr_t)&regs, NT_PRSTATUS) < 0) {
-        perror("PT_GETREGS");
+    if (thread_get_state(macos_child, ARM_THREAD_STATE64, (thread_state_t)&regs, &sc) < 0) {
+        perror("thread_get_state");
         exit(-1);
     }
     print_arm64_registers(&regs);
@@ -144,6 +141,7 @@ void print_cpu_state(int child)
     }
     print_fpregs(&fpregs);
 #endif
-    print_arm64_instruction(child, regs.gp_elr);
-#endif
+    //TODO
+    printf("0x%016jx:\n", (uintptr_t)arm_thread_state64_get_pc(regs));
+    //print_arm64_instruction(child, arm_thread_state_get_pc(regs));
 }

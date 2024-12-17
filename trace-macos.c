@@ -25,8 +25,38 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
+#include <mach/mach.h>
 
 #include "trace.h"
+
+//mach_port_name_t
+task_t macos_port;
+thread_act_t macos_child;
+
+static void macos_init(int child)
+{
+    if (task_for_pid(mach_task_self(), child, &macos_port) < 0) {
+        perror("task_for_pid");
+        exit(-1);
+    }
+    thread_act_port_array_t thread_list;
+    mach_msg_type_number_t thread_count;
+
+    if (task_threads(macos_port, &thread_list, &thread_count) < 0) {
+        perror("task_for_pid");
+        exit(-1);
+    }
+    if (thread_count != 1) {
+        printf("Cannot handle %u threads, sorry\n", thread_count);
+        exit(-1);
+    }
+    macos_child = thread_list[0];
+}
+
+static void macos_finish()
+{
+    mach_port_deallocate(mach_task_self(), macos_port);
+}
 
 //
 // Wait for child process to stop on next instruction.
@@ -111,6 +141,7 @@ void trace(char *pathname)
     // Parent.
     //
     size_t instr_count = 0;
+    macos_init(child);
     while (child_alive()) {
 
         print_cpu_state(child);
@@ -119,9 +150,10 @@ void trace(char *pathname)
         // Execute next CPU instruction.
         fflush(stdout);
         errno = 0;
-        if (ptrace(PT_STEP, child, NULL, 0) < 0) {
+        if (ptrace(PT_STEP, child, (caddr_t)1, 0) < 0) {
             perror("PT_STEP");
             exit(-1);
         }
     }
+    macos_finish();
 }

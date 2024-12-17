@@ -58,7 +58,7 @@ ifeq ($(OS), FreeBSD)
     endif
 endif
 ifeq ($(OS), Darwin)
-    CFLAGS += -I/opt/homebrew/include
+    CFLAGS += -I/opt/homebrew/include #-D__DARWIN_OPAQUE_ARM_THREAD_STATE64=1
     LIBS += -L/opt/homebrew/lib
     ifeq ($(ARCH), x86_64)
         # MacOS on Intel 64-bit architecture
