@@ -29,6 +29,7 @@
 #include <sys/syscall.h>
 
         .text
+        .align  2
         .globl  _main
 _main:
         mov     $0x2000000|SYS_write, %rax  // syscall write(fd, message, size)

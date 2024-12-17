@@ -37,7 +37,12 @@ static void macos_init(int child)
 {
     kern_return_t status = task_for_pid(mach_task_self(), child, &macos_port);
     if (status != KERN_SUCCESS) {
-        printf("task_for_pid failed: %s\n", mach_error_string(status));
+        if (status == KERN_FAILURE) {
+            printf("Insufficient credentials for sub-process control on MacOS.\n");
+            printf("Please run this command as: sudo bintrace\n");
+        } else {
+            printf("task_for_pid failed: %s\n", mach_error_string(status));
+        }
         exit(-1);
     }
 printf("macos_port = %u\n", macos_port);

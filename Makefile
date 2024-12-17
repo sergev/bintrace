@@ -4,6 +4,7 @@ OBJS    = main.o
 ARCH    := $(shell uname -m)
 OS      := $(shell uname -s)
 BRANDELF = size
+DEMO     = ./$(PROG)
 
 ifeq ($(OS), Linux)
     ifeq ($(ARCH), x86_64)
@@ -59,6 +60,9 @@ ifeq ($(OS), FreeBSD)
 endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
+    #TODO: LIBS += -sectcreate __TEXT __info_plist ./app.plist
+    #TODO: BRANDELF = codesign -s $(file < ~/.my_codesign_identity)
+    DEMO = sudo ./$(PROG)
     ifeq ($(ARCH), x86_64)
         # MacOS on Intel 64-bit architecture
         TEST = demo-amd64-macos
@@ -89,5 +93,5 @@ $(TEST): $(TEST).o
 	objdump -D $@ > $@.dis
 
 demo.sh:
-	echo "./$(PROG) ./$(TEST)" > $@
+	echo "$(DEMO) ./$(TEST)" > $@
 	chmod +x $@
