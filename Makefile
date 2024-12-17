@@ -61,13 +61,13 @@ endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
     LIBS += -sectcreate __TEXT __info_plist ./app.plist
-    TESTLIBS += -static
     #TODO: BRANDELF = codesign -s $(file < ~/.my_codesign_identity)
     DEMO = sudo ./$(PROG)
     ifeq ($(ARCH), x86_64)
         # MacOS on Intel 64-bit architecture
         TEST = demo-amd64-macos
         OBJS += trace-macos.o macos-amd64.o
+        TESTLIBS += -static
     endif
     ifeq ($(ARCH), arm64)
         # MacOS on Apple ARM64 processor
