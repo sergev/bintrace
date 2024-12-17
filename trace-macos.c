@@ -29,7 +29,6 @@
 
 #include "trace.h"
 
-//mach_port_name_t
 task_t macos_port;
 thread_act_t macos_child;
 
@@ -45,7 +44,6 @@ static void macos_init(int child)
         }
         exit(-1);
     }
-printf("macos_port = %u\n", macos_port);
     thread_act_port_array_t thread_list;
     mach_msg_type_number_t thread_count;
 
@@ -59,7 +57,6 @@ printf("macos_port = %u\n", macos_port);
         exit(-1);
     }
     macos_child = thread_list[0];
-printf("macos_child = %u\n", macos_child);
 }
 
 static void macos_finish()

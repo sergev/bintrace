@@ -60,7 +60,7 @@ ifeq ($(OS), FreeBSD)
 endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
-    #TODO: LIBS += -sectcreate __TEXT __info_plist ./app.plist
+    LIBS += -sectcreate __TEXT __info_plist ./app.plist
     #TODO: BRANDELF = codesign -s $(file < ~/.my_codesign_identity)
     DEMO = sudo ./$(PROG)
     ifeq ($(ARCH), x86_64)

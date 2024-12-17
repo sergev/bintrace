@@ -107,13 +107,29 @@ static void print_arm64_registers(const arm_thread_state64_t *cur)
     PRINT_FIELD("   x26", __x[26]);
     PRINT_FIELD("   x27", __x[27]);
     PRINT_FIELD("   x28", __x[28]);
-    printf("        fp = %#jx\n", (uintptr_t)arm_thread_state64_get_fp(*cur));
-    printf("        lr = %#jx\n", (uintptr_t)arm_thread_state64_get_lr(*cur));
-    printf("        sp = %#jx\n", (uintptr_t)arm_thread_state64_get_sp(*cur));
-    printf("      cpsr = %#x\n", cur->__cpsr);
+
+    uintptr_t new_fp = arm_thread_state64_get_fp(*cur);
+    uintptr_t new_lr = arm_thread_state64_get_lr(*cur);
+    uintptr_t new_sp = arm_thread_state64_get_sp(*cur);
+    if (new_fp != prev.__fp) {
+        printf("        fp = %#jx\n", new_fp);
+    }
+    if (new_lr != prev.__lr) {
+        printf("        lr = %#jx\n", new_lr);
+    }
+    if (new_sp != prev.__sp) {
+        printf("        sp = %#jx\n", new_sp);
+    }
+
+    if (cur->__cpsr != prev.__cpsr) {
+        printf("      cpsr = %#x\n", cur->__cpsr);
+    }
 
 #undef PRINT_FIELD
     prev = *cur;
+    prev.__fp = new_fp;
+    prev.__lr = new_lr;
+    prev.__sp = new_sp;
 }
 
 //
