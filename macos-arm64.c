@@ -124,10 +124,18 @@ void print_cpu_state(int child)
 {
     extern thread_act_t macos_child;
     arm_thread_state64_t regs;
-    mach_msg_type_number_t sc = ARM_THREAD_STATE64_COUNT;
+    mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
 
-    if (thread_get_state(macos_child, ARM_THREAD_STATE64, (thread_state_t)&regs, &sc) < 0) {
-        perror("thread_get_state");
+    kern_return_t status = thread_get_state(macos_child, ARM_THREAD_STATE64, (thread_state_t)&regs, &count);
+    if (status != KERN_SUCCESS) {
+        printf("thread_get_state failed: %s\n", mach_error_string(status));
+        exit(-1);
+    }
+    status = thread_convert_thread_state(macos_child, THREAD_CONVERT_THREAD_STATE_TO_SELF,
+                                         ARM_THREAD_STATE64, (thread_state_t)&regs, count,
+                                         (thread_state_t)&regs, &count);
+    if (status != KERN_SUCCESS) {
+        printf("thread_convert_thread_state failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     print_arm64_registers(&regs);

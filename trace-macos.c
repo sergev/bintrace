@@ -35,14 +35,15 @@ thread_act_t macos_child;
 
 static void macos_init(int child)
 {
-    if (task_for_pid(mach_task_self(), child, &macos_port) < 0) {
-        perror("task_for_pid");
+    kern_return_t status = task_for_pid(mach_task_self(), child, &macos_port);
+    if (status != KERN_SUCCESS) {
+        printf("task_for_pid failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     thread_act_port_array_t thread_list;
     mach_msg_type_number_t thread_count;
 
-    if (task_threads(macos_port, &thread_list, &thread_count) < 0) {
+    if (task_threads(macos_port, &thread_list, &thread_count) != KERN_SUCCESS) {
         perror("task_for_pid");
         exit(-1);
     }
@@ -110,6 +111,9 @@ static bool child_alive()
 
 void trace(char *pathname)
 {
+    printf("Starting program: %s\n", pathname);
+    fflush(stdout);
+
     // Create child.
     pid_t child = fork();
     if (child < 0) {
@@ -117,12 +121,10 @@ void trace(char *pathname)
         perror("fork");
         exit(-1);
     }
-
     if (child == 0) {
         //
         // Child: start target program.
         //
-        printf("Starting program: %s\n", pathname);
 
         errno = 0;
         if (ptrace(PT_TRACE_ME, 0, NULL, 0) < 0) {
