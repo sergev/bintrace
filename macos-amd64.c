@@ -27,6 +27,7 @@
 
 #include "trace.h"
 
+extern task_t macos_port;
 extern thread_act_t macos_child;
 
 //
@@ -35,12 +36,12 @@ extern thread_act_t macos_child;
 static void print_amd64_instruction(int child, unsigned long long address)
 {
 //TODO: read user code
-printf("0x%016llx:\n", address);
+//printf("0x%016llx:\n", address);
     // Read opcode from child process.
     // Max instruction size for x86-64 architecture is 16 bytes.
     uint64_t code[2];
     mach_msg_type_number_t got_nbytes;
-    kern_return_t status = vm_read(macos_child, address, sizeof(code), (vm_offset_t*)code, &got_nbytes);
+    kern_return_t status = vm_read(macos_port, address, sizeof(code), (vm_offset_t*)code, &got_nbytes);
     if (status != KERN_SUCCESS) {
         printf("vm_read failed: %s\n", mach_error_string(status));
         exit(-1);
@@ -49,6 +50,7 @@ printf("0x%016llx:\n", address);
         printf("vm_read: got wrong amount\n");
         exit(-1);
     }
+printf("0x%016llx: %08llx %08llx\n", address, code[0], code[1]);
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
