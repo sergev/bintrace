@@ -23,6 +23,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <spawn.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
 #include <mach/mach.h>
@@ -62,6 +63,33 @@ static void macos_init(int child)
 static void macos_finish()
 {
     mach_port_deallocate(mach_task_self(), macos_port);
+}
+
+//
+// Replaces the current process image with a new process image.
+// Disable Address Space Layout Randomization (ASLR).
+//
+static void macos_execv(const char *pathname, char *const argv[])
+{
+    posix_spawnattr_t attr;
+    int res = posix_spawnattr_init(&attr);
+    if (res != 0) {
+        printf("Cannot initialize attribute for posix_spawn\n");
+        exit(-1);
+    }
+
+    // The constant doesn't look to be available outside the kernel include files.
+#ifndef _POSIX_SPAWN_DISABLE_ASLR
+#define _POSIX_SPAWN_DISABLE_ASLR 0x0100
+#endif
+    res = posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETEXEC | _POSIX_SPAWN_DISABLE_ASLR);
+    if (res != 0) {
+        printf("Cannot set posix_spawn flags\n");
+        exit(-1);
+    }
+
+    extern char **environ;
+    posix_spawn(NULL, pathname, NULL, &attr, argv, environ);
 }
 
 //
@@ -137,7 +165,7 @@ void trace(char *pathname)
             exit(-1);
         }
         char *const argv[] = { pathname, NULL };
-        execv(pathname, argv);
+        macos_execv(pathname, argv);
 
         // Failed to execute.
         perror(pathname);
