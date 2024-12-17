@@ -40,11 +40,13 @@ static void macos_init(int child)
         printf("task_for_pid failed: %s\n", mach_error_string(status));
         exit(-1);
     }
+printf("macos_port = %u\n", macos_port);
     thread_act_port_array_t thread_list;
     mach_msg_type_number_t thread_count;
 
-    if (task_threads(macos_port, &thread_list, &thread_count) != KERN_SUCCESS) {
-        perror("task_for_pid");
+    status = task_threads(macos_port, &thread_list, &thread_count);
+    if (status != KERN_SUCCESS) {
+        printf("task_threads failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     if (thread_count != 1) {
@@ -52,6 +54,7 @@ static void macos_init(int child)
         exit(-1);
     }
     macos_child = thread_list[0];
+printf("macos_child = %u\n", macos_child);
 }
 
 static void macos_finish()
@@ -143,9 +146,11 @@ void trace(char *pathname)
     // Parent.
     //
     size_t instr_count = 0;
-    macos_init(child);
     while (child_alive()) {
 
+        if (!macos_port) {
+            macos_init(child);
+        }
         print_cpu_state(child);
         instr_count += 1;
 
