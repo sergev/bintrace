@@ -152,7 +152,9 @@ void trace(char *pathname)
     if (child == 0) {
         //
         // Child: start target program.
+        // Drop privileges.
         //
+        setuid(getuid());
 
         errno = 0;
         if (ptrace(PT_TRACE_ME, 0, NULL, 0) < 0) {

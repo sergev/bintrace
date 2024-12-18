@@ -81,6 +81,9 @@ static bool child_alive()
 
 void trace(char *pathname)
 {
+    printf("Starting program: %s\n", pathname);
+    fflush(stdout);
+
     // Create child.
     pid_t child = fork();
     if (child < 0) {
@@ -92,10 +95,8 @@ void trace(char *pathname)
     if (child == 0) {
         //
         // Child: start target program.
-        //
-        printf("Starting program: %s\n", pathname);
-
         // Disable address-space-layout randomization.
+        //
         personality(ADDR_NO_RANDOMIZE);
 
         errno = 0;
