@@ -66,30 +66,25 @@ static void macos_finish()
 }
 
 //
-// Replaces the current process image with a new process image.
-// Disable Address Space Layout Randomization (ASLR).
+// Return flags to disable Address Space Layout Randomization (ASLR).
 //
-static void macos_execv(const char *pathname, char *const argv[])
+static posix_spawnattr_t disable_aslr()
 {
     posix_spawnattr_t attr;
-    int res = posix_spawnattr_init(&attr);
-    if (res != 0) {
-        printf("Cannot initialize attribute for posix_spawn\n");
+    if (posix_spawnattr_init(&attr) != 0) {
+        printf("Cannot initialize attributes for posix_spawn\n");
         exit(-1);
     }
 
-    // The constant doesn't look to be available outside the kernel include files.
+    // This constant doesn't look to be available outside the kernel include files.
 #ifndef _POSIX_SPAWN_DISABLE_ASLR
 #define _POSIX_SPAWN_DISABLE_ASLR 0x0100
 #endif
-    res = posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETEXEC | _POSIX_SPAWN_DISABLE_ASLR);
-    if (res != 0) {
+    if (posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETEXEC | _POSIX_SPAWN_DISABLE_ASLR) != 0) {
         printf("Cannot set posix_spawn flags\n");
         exit(-1);
     }
-
-    extern char **environ;
-    posix_spawn(NULL, pathname, NULL, &attr, argv, environ);
+    return attr;
 }
 
 //
@@ -165,7 +160,9 @@ void trace(char *pathname)
             exit(-1);
         }
         char *const argv[] = { pathname, NULL };
-        macos_execv(pathname, argv);
+        posix_spawnattr_t attr = disable_aslr();
+        extern char **environ;
+        posix_spawn(NULL, pathname, NULL, &attr, argv, environ);
 
         // Failed to execute.
         perror(pathname);
