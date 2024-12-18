@@ -30,8 +30,6 @@
 extern task_t macos_port;
 extern thread_act_t macos_child;
 
-//#define PAGE_ALIGN(addr) (vm_address_t)((uintptr_t)(addr) & (~(vm_page_size - 1)))
-
 //
 // Print current CPU instruction.
 //

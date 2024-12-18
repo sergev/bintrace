@@ -48,7 +48,6 @@ static void print_arm64_instruction(int child, unsigned long long address)
         printf("vm_read: got wrong amount\n");
         exit(-1);
     }
-printf("0x%016llx: 0x%08x\n", address, code[0]);
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
