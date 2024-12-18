@@ -4,6 +4,7 @@ OBJS    = main.o
 ARCH    := $(shell uname -m)
 OS      := $(shell uname -s)
 BRANDELF = size
+CODESIGN = size
 DEMO     = ./$(PROG)
 
 ifeq ($(OS), Linux)
@@ -61,7 +62,6 @@ endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
     LIBS += -sectcreate __TEXT __info_plist ./app.plist
-    #TODO: BRANDELF = codesign -s $(file < ~/.my_codesign_identity)
     DEMO = sudo ./$(PROG)
     ifeq ($(ARCH), x86_64)
         # MacOS on Intel 64-bit architecture
@@ -75,6 +75,10 @@ ifeq ($(OS), Darwin)
         OBJS += trace-macos.o macos-arm64.o
         LIBS += -L/opt/homebrew/lib
     endif
+    ifneq (,$(wildcard ~/.codesign_identity))
+        # Sign the code with your Apple identity.
+        CODESIGN = codesign -s $(shell cat ~/.codesign_identity)
+    endif
 endif
 
 all:    $(PROG) $(TEST) demo.sh
@@ -87,6 +91,7 @@ clean:
 
 $(PROG): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
+	$(CODESIGN) $@
 
 $(TEST): $(TEST).o
 	ld -o $@ $< $(TESTLIBS)
