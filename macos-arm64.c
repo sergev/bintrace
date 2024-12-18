@@ -35,12 +35,11 @@ extern thread_act_t macos_child;
 //
 static void print_arm64_instruction(int child, unsigned long long address)
 {
-//printf("0x%016llx:\n", address);
     // Read opcode from child process.
     // Max instruction size for arm64 architecture is 4 bytes.
-    uint32_t code[2];
-    mach_msg_type_number_t got_nbytes;
-    kern_return_t status = vm_read(macos_port, (vm_address_t)address, sizeof(code), (vm_offset_t*)code, &got_nbytes);
+    uint32_t code[1];
+    vm_size_t got_nbytes;
+    kern_return_t status = vm_read_overwrite(macos_port, address, sizeof(code), (vm_address_t)code, &got_nbytes);
     if (status != KERN_SUCCESS) {
         printf("vm_read failed: %s\n", mach_error_string(status));
         exit(-1);
