@@ -27,6 +27,8 @@
 
 #include "trace.h"
 
+uint32_t last_opcode;
+
 //
 // On syscall, ptrace() stops twice: right before execution and after it.
 // With this flag we ignore the first stop.
@@ -47,6 +49,7 @@ static void print_arm64_instruction(int child, unsigned long long address)
         perror("PTRACE_PEEKTEXT");
         exit(-1);
     }
+    last_opcode = code[0];
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
@@ -129,6 +132,60 @@ static void print_arm64_registers(const struct user_regs_struct *cur)
 }
 
 //
+// Detect STXR instruction.
+// For example:
+//      88117c41    stxr w17, w1,  [x2]
+//      8811fc30   stlxr w17, w16, [x1]
+//                       rd,  rt,  [rn]
+// Bits:
+//      3322 2222 2222 1111 1111 11
+//      1098-7654-3210-9876-5432-1098-7654-3210
+//      8    8    1    1    7    c    4    1
+//      1x00 1000 000x xxxx 0111 11xx xxxx xxxx
+//      \/           \____/        \____/\____/
+//      size           rs            rn    rt
+//      1011 1111 1110 0000 0000 0000 0000 0000 bitmask
+//
+static bool is_stxr()
+{
+    return (last_opcode & 0xbfe00000) == 0x88000000;
+}
+
+//
+// Clear result of STXR, as if it succeeded.
+//
+// stxr rd, rt, [rn]
+//
+static void hack_stxr(int child, struct user_regs_struct *regs)
+{
+    unsigned rs = (last_opcode >> 16) & 0x1f;
+    unsigned rt = last_opcode & 0x1f;
+    unsigned rn = (last_opcode >> 5) & 0x1f;
+
+    if (rs < 31 && rt < 31 && regs->regs[rs] != 0) {
+        uint64_t rt_value = regs->regs[rt];
+        uint64_t rn_value = (rn == 31) ? regs->sp : regs->regs[rn];
+        printf("   hack stxr: write 0x%08lx to [0x%016lx]\n", rt_value, rn_value);
+        regs->regs[rs] = 0;
+
+        struct iovec iov = { regs, sizeof(*regs) };
+        errno = 0;
+        if (ptrace(PTRACE_SETREGSET, child, (void*)NT_PRSTATUS, &iov) < 0) {
+            perror("PTRACE_SETREGSET");
+            exit(-1);
+        }
+
+        //TODO: size 64bit/32bit
+        errno = 0;
+        ptrace(PTRACE_POKEDATA, child, (void*)rn_value, rt_value);
+        if (errno) {
+            perror("PTRACE_POKEDATA");
+            exit(-1);
+        }
+    }
+}
+
+//
 // Get CPU state.
 // Print program counter, disassembled instruction and changed registers.
 //
@@ -150,6 +207,10 @@ void print_cpu_state(int child)
         perror("PTRACE_GETREGSET");
         exit(-1);
     }
+    if (is_stxr()) {
+        hack_stxr(child, &regs);
+    }
+
     print_arm64_registers(&regs);
 #if 0
     //TODO: print FP registers
