@@ -106,7 +106,7 @@ void trace(char *pathname)
             exit(-1);
         }
         char *const argv[] = { pathname, NULL };
-        execv(pathname, argv);
+        execvp(pathname, argv);
 
         // Failed to execute.
         perror(pathname);

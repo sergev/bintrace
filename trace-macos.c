@@ -164,7 +164,7 @@ void trace(char *pathname)
         char *const argv[] = { pathname, NULL };
         posix_spawnattr_t attr = disable_aslr();
         extern char **environ;
-        posix_spawn(NULL, pathname, NULL, &attr, argv, environ);
+        posix_spawnp(NULL, pathname, NULL, &attr, argv, environ);
 
         // Failed to execute.
         perror(pathname);
