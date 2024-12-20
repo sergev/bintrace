@@ -164,7 +164,7 @@ void trace(char *const argv[])
         posix_spawnp(NULL, argv[0], NULL, &attr, argv, environ);
 
         // Failed to execute.
-        perror(argv[0]);
+        fprintf(stderr, "%s: Command not found in the path\n", argv[0]);
         exit(-1);
     }
 
