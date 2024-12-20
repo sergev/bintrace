@@ -41,37 +41,36 @@ static bool child_alive()
         perror("wait");
         exit(-1);
     }
-    //printf("%zu: status %#x\n", instr_count, status);
 
     if (WIFEXITED(status)) {
         // The process terminated normally by a call to _exit(2).
         if (WEXITSTATUS(status) == 0) {
-            printf("Process exited normally.\n");
+            fprintf(out, "Process exited normally.\n");
         } else {
-            printf("Process exited with status %d\n", WEXITSTATUS(status));
+            fprintf(out, "Process exited with status %d\n", WEXITSTATUS(status));
         }
         return false;
     }
 
     if (WIFSIGNALED(status)) {
         // The process terminated due to receipt of a signal.
-        printf("Child killed by signal %s\n", strsignal(WTERMSIG(status)));
+        fprintf(out, "Child killed by signal %s\n", strsignal(WTERMSIG(status)));
         if (WCOREDUMP(status)) {
-            printf("Core dumped.\n");
+            fprintf(out, "Core dumped.\n");
         }
         return false;
     }
 
     // The process must have stopped, being traced.
     if (!WIFSTOPPED(status)) {
-        printf("Child not stopped?\n");
+        fprintf(stderr, "Child not stopped?\n");
         exit(-1);
     }
 
     // WSTOPSIG(status) evaluates to the signal that caused the process to stop.
     // Must be SIGTRAP for ptrace.
     if (WSTOPSIG(status) != SIGTRAP) {
-        printf("Child stopped by signal %s\n", strsignal(WSTOPSIG(status)));
+        fprintf(out, "Child stopped by signal %s\n", strsignal(WSTOPSIG(status)));
         return false;
     }
 
@@ -79,10 +78,9 @@ static bool child_alive()
     return true;
 }
 
-void trace(char *pathname)
+void trace(char *const argv[])
 {
-    printf("Starting program: %s\n", pathname);
-    fflush(stdout);
+    fprintf(out, "Starting program: %s\n", argv[0]);
 
     // Create child.
     pid_t child = fork();
@@ -105,11 +103,10 @@ void trace(char *pathname)
             perror("PT_TRACE_ME");
             exit(-1);
         }
-        char *const argv[] = { pathname, NULL };
-        execvp(pathname, argv);
+        execvp(argv[0], argv);
 
         // Failed to execute.
-        perror(pathname);
+        perror(argv[0]);
         exit(-1);
     }
 

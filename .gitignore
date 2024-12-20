@@ -6,3 +6,4 @@ demo-*-freebsd
 *.o
 *.dis
 *.trace
+*c-

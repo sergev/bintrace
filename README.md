@@ -40,6 +40,15 @@ To build the `bintrace` utility and demo files, use:
     make
 ```
 
+# Arguments and options
+```
+Usage:
+    bintrace [-o file] [-a] command [argument ...]
+Options:
+    -o file     Write the trace to file instead of stderr
+    -a          Append to the specified file rather than overwriting it
+```
+
 # Demo
 
 Run shell script `demo.sh` to see how it works. For example:

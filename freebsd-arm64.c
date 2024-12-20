@@ -45,22 +45,22 @@ static void print_arm64_instruction(int child, unsigned long long address)
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%016llx: ", address);
+    fprintf(out, "0x%016llx: ", address);
     if (count == 0) {
-        printf("(unknown)\n");
+        fprintf(out, "(unknown)\n");
     } else {
         switch (insn[0].size) {
         case 4:
-            printf(" %04x", (uint32_t)code[0]);
+            fprintf(out, " %04x", (uint32_t)code[0]);
             break;
         case 2:
-            printf(" %02x    ", (uint16_t)code[0]);
+            fprintf(out, " %02x    ", (uint16_t)code[0]);
             break;
         default:
             fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
             exit(-1);
         }
-        printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
+        fprintf(out, "   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
 }
@@ -75,7 +75,7 @@ static void print_arm64_registers(const struct gpregs *cur)
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#lx\n", cur->field); \
+        fprintf(out, "    " name " = %#lx\n", cur->field); \
     }
 
     PRINT_FIELD("    x0", gp_x[0]);

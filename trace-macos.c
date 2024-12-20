@@ -38,10 +38,10 @@ static void macos_init(int child)
     kern_return_t status = task_for_pid(mach_task_self(), child, &macos_port);
     if (status != KERN_SUCCESS) {
         if (status == KERN_FAILURE) {
-            printf("Insufficient credentials for sub-process control on MacOS.\n");
-            printf("Please run this command as: sudo bintrace\n");
+            fprintf(stderr, "Insufficient credentials for sub-process control on MacOS.\n");
+            fprintf(stderr, "Please run this command with sudo.\n");
         } else {
-            printf("task_for_pid failed: %s\n", mach_error_string(status));
+            fprintf(stderr, "task_for_pid failed: %s\n", mach_error_string(status));
         }
         exit(-1);
     }
@@ -50,11 +50,11 @@ static void macos_init(int child)
 
     status = task_threads(macos_port, &thread_list, &thread_count);
     if (status != KERN_SUCCESS) {
-        printf("task_threads failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "task_threads failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     if (thread_count != 1) {
-        printf("Cannot handle %u threads, sorry\n", thread_count);
+        fprintf(stderr, "Cannot handle %u threads, sorry\n", thread_count);
         exit(-1);
     }
     macos_child = thread_list[0];
@@ -72,7 +72,7 @@ static posix_spawnattr_t disable_aslr()
 {
     posix_spawnattr_t attr;
     if (posix_spawnattr_init(&attr) != 0) {
-        printf("Cannot initialize attributes for posix_spawn\n");
+        fprintf(stderr, "Cannot initialize attributes for posix_spawn\n");
         exit(-1);
     }
 
@@ -81,7 +81,7 @@ static posix_spawnattr_t disable_aslr()
 #define _POSIX_SPAWN_DISABLE_ASLR 0x0100
 #endif
     if (posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETEXEC | _POSIX_SPAWN_DISABLE_ASLR) != 0) {
-        printf("Cannot set posix_spawn flags\n");
+        fprintf(stderr, "Cannot set posix_spawn flags\n");
         exit(-1);
     }
     return attr;
@@ -99,37 +99,36 @@ static bool child_alive()
         perror("wait");
         exit(-1);
     }
-    //printf("%zu: status %#x\n", instr_count, status);
 
     if (WIFEXITED(status)) {
         // The process terminated normally by a call to _exit(2).
         if (WEXITSTATUS(status) == 0) {
-            printf("Process exited normally.\n");
+            fprintf(out, "Process exited normally.\n");
         } else {
-            printf("Process exited with status %d\n", WEXITSTATUS(status));
+            fprintf(out, "Process exited with status %d\n", WEXITSTATUS(status));
         }
         return false;
     }
 
     if (WIFSIGNALED(status)) {
         // The process terminated due to receipt of a signal.
-        printf("Child killed by signal %s\n", strsignal(WTERMSIG(status)));
+        fprintf(out, "Child killed by signal %s\n", strsignal(WTERMSIG(status)));
         if (WCOREDUMP(status)) {
-            printf("Core dumped.\n");
+            fprintf(out, "Core dumped.\n");
         }
         return false;
     }
 
     // The process must have stopped, being traced.
     if (!WIFSTOPPED(status)) {
-        printf("Child not stopped?\n");
+        fprintf(stderr, "Child not stopped?\n");
         exit(-1);
     }
 
     // WSTOPSIG(status) evaluates to the signal that caused the process to stop.
     // Must be SIGTRAP for ptrace.
     if (WSTOPSIG(status) != SIGTRAP) {
-        printf("Child stopped by signal %s\n", strsignal(WSTOPSIG(status)));
+        fprintf(out, "Child stopped by signal %s\n", strsignal(WSTOPSIG(status)));
         return false;
     }
 
@@ -137,10 +136,9 @@ static bool child_alive()
     return true;
 }
 
-void trace(char *pathname)
+void trace(char *const argv[])
 {
-    printf("Starting program: %s\n", pathname);
-    fflush(stdout);
+    fprintf(out, "Starting program: %s\n", argv[0]);
 
     // Create child.
     pid_t child = fork();
@@ -161,13 +159,12 @@ void trace(char *pathname)
             perror("PT_TRACE_ME");
             exit(-1);
         }
-        char *const argv[] = { pathname, NULL };
         posix_spawnattr_t attr = disable_aslr();
         extern char **environ;
-        posix_spawnp(NULL, pathname, NULL, &attr, argv, environ);
+        posix_spawnp(NULL, argv[0], NULL, &attr, argv, environ);
 
         // Failed to execute.
-        perror(pathname);
+        perror(argv[0]);
         exit(-1);
     }
 

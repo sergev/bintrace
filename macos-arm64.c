@@ -41,33 +41,33 @@ static void print_arm64_instruction(int child, unsigned long long address)
     vm_size_t got_nbytes;
     kern_return_t status = vm_read_overwrite(macos_port, address, sizeof(code), (vm_address_t)code, &got_nbytes);
     if (status != KERN_SUCCESS) {
-        printf("vm_read failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "vm_read failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     if (got_nbytes != sizeof(code)) {
-        printf("vm_read: got wrong amount\n");
+        fprintf(stderr, "vm_read: got wrong amount\n");
         exit(-1);
     }
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%016llx: ", address);
+    fprintf(out, "0x%016llx: ", address);
     if (count == 0) {
-        printf("(unknown)\n");
+        fprintf(out, "(unknown)\n");
     } else {
         switch (insn[0].size) {
         case 4:
-            printf(" %04x", (uint32_t)code[0]);
+            fprintf(out, " %04x", (uint32_t)code[0]);
             break;
         case 2:
-            printf(" %02x    ", (uint16_t)code[0]);
+            fprintf(out, " %02x    ", (uint16_t)code[0]);
             break;
         default:
             fprintf(stderr, "Unexpected instruction size: %u bytes\n", insn[0].size);
             exit(-1);
         }
-        printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
+        fprintf(out, "   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
 }
@@ -82,7 +82,7 @@ static void print_arm64_registers(const arm_thread_state64_t *cur)
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#llx\n", cur->field); \
+        fprintf(out, "    " name " = %#llx\n", cur->field); \
     }
 
     PRINT_FIELD("    x0", __x[0]);
@@ -119,17 +119,17 @@ static void print_arm64_registers(const arm_thread_state64_t *cur)
     uintptr_t new_lr = arm_thread_state64_get_lr(*cur);
     uintptr_t new_sp = arm_thread_state64_get_sp(*cur);
     if (new_fp != prev.__fp) {
-        printf("        fp = %#jx\n", new_fp);
+        fprintf(out, "        fp = %#jx\n", new_fp);
     }
     if (new_lr != prev.__lr) {
-        printf("        lr = %#jx\n", new_lr);
+        fprintf(out, "        lr = %#jx\n", new_lr);
     }
     if (new_sp != prev.__sp) {
-        printf("        sp = %#jx\n", new_sp);
+        fprintf(out, "        sp = %#jx\n", new_sp);
     }
 
     if (cur->__cpsr != prev.__cpsr) {
-        printf("      cpsr = %#x\n", cur->__cpsr);
+        fprintf(out, "      cpsr = %#x\n", cur->__cpsr);
     }
 
 #undef PRINT_FIELD
@@ -150,14 +150,14 @@ void print_cpu_state(int child)
 
     kern_return_t status = thread_get_state(macos_child, ARM_THREAD_STATE64, (thread_state_t)&regs, &count);
     if (status != KERN_SUCCESS) {
-        printf("thread_get_state failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "thread_get_state failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     status = thread_convert_thread_state(macos_child, THREAD_CONVERT_THREAD_STATE_TO_SELF,
                                          ARM_THREAD_STATE64, (thread_state_t)&regs, count,
                                          (thread_state_t)&regs, &count);
     if (status != KERN_SUCCESS) {
-        printf("thread_convert_thread_state failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "thread_convert_thread_state failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     print_arm64_registers(&regs);

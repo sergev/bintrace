@@ -41,29 +41,29 @@ static void print_amd64_instruction(int child, unsigned long long address)
     vm_size_t got_nbytes;
     kern_return_t status = vm_read_overwrite(macos_port, address, sizeof(code), (vm_address_t)code, &got_nbytes);
     if (status != KERN_SUCCESS) {
-        printf("vm_read failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "vm_read failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     if (got_nbytes != sizeof(code)) {
-        printf("vm_read: got wrong amount\n");
+        fprintf(stderr, "vm_read: got wrong amount\n");
         exit(-1);
     }
 
     // Disassemble one instruction.
     cs_insn *insn = NULL;
     size_t count = cs_disasm(disasm, (uint8_t*)code, sizeof(code), address, 1, &insn);
-    printf("0x%016llx: ", address);
+    fprintf(out, "0x%016llx: ", address);
     if (count == 0) {
-        printf("(unknown)\n");
+        fprintf(out, "(unknown)\n");
     } else {
         unsigned n;
         for (n = 0; n < insn[0].size; n++) {
-            printf(" %02x", insn[0].bytes[n]);
+            fprintf(out, " %02x", insn[0].bytes[n]);
         }
         while (n++ < 7) {
-            printf("   ");
+            fprintf(out, "   ");
         }
-        printf("   %s %s\n", insn[0].mnemonic, insn[0].op_str);
+        fprintf(out, "   %s %s\n", insn[0].mnemonic, insn[0].op_str);
         cs_free(insn, count);
     }
 }
@@ -78,7 +78,7 @@ static void print_amd64_registers(const x86_thread_state64_t *cur)
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        printf("    " name " = %#llx\n", cur->field); \
+        fprintf(out, "    " name " = %#llx\n", cur->field); \
     }
 
     PRINT_FIELD("   rax", __rax);
@@ -120,14 +120,14 @@ void print_cpu_state(int child)
 
     kern_return_t status = thread_get_state(macos_child, x86_THREAD_STATE64, (thread_state_t)&regs, &count);
     if (status != KERN_SUCCESS) {
-        printf("thread_get_state failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "thread_get_state failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     status = thread_convert_thread_state(macos_child, THREAD_CONVERT_THREAD_STATE_TO_SELF,
                                          x86_THREAD_STATE64, (thread_state_t)&regs, count,
                                          (thread_state_t)&regs, &count);
     if (status != KERN_SUCCESS) {
-        printf("thread_convert_thread_state failed: %s\n", mach_error_string(status));
+        fprintf(stderr, "thread_convert_thread_state failed: %s\n", mach_error_string(status));
         exit(-1);
     }
     print_amd64_registers(&regs);

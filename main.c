@@ -19,16 +19,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+#include <getopt.h>
 #include "trace.h"
+
+FILE *out;
 
 // Handle for disassembler.
 csh disasm;
 
+static void usage()
+{
+    printf("Usage:\n");
+    printf("    bintrace [-o file] [-a] command [argument ...]\n");
+    printf("Options:\n");
+    printf("    -o file     Write the trace to file instead of stderr\n");
+    printf("    -a          Append to the specified file rather than overwriting it\n");
+    exit(-1);
+}
+
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        printf("Usage: bintrace ./file\n");
-        exit(-1);
+    bool aflag = false;
+    char *ofn = NULL;
+    int ch;
+
+    while ((ch = getopt(argc, argv, "ao:")) != -1) {
+        switch ((char)ch) {
+        case 'a':
+            aflag = true;
+            break;
+        case 'o':
+            ofn = optarg;
+            break;
+        case '?':
+        default:
+            usage();
+        }
+    }
+    argv += optind;
+    argc -= optind;
+    if (argc < 1) {
+        usage();
     }
 
     // Initialize disassembler.
@@ -43,14 +74,23 @@ int main(int argc, char *argv[])
 #elif __riscv
     int status = cs_open(CS_ARCH_RISCV, CS_MODE_RISCV64, &disasm);
 #else
-#   error "This architecture is not supported"
+#error "This architecture is not supported"
 #endif
     if (status != CS_ERR_OK) {
         perror("cs_open");
         exit(-1);
     }
 
-    trace(argv[1]);
+    out = stderr;
+    if (ofn) {
+        out = fopen(ofn, aflag ? "ae" : "we");
+        if (out == NULL) {
+            perror(ofn);
+            exit(-1);
+        }
+        setvbuf(out, (char *)NULL, _IONBF, (size_t)0);
+    }
+    trace(argv);
 
     cs_close(&disasm);
 }

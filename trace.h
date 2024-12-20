@@ -21,7 +21,8 @@
 //
 #include <capstone/capstone.h>
 
+extern FILE *out;
 extern csh disasm;
 
-void trace(char *pathname);
+void trace(char *const argv[]);
 void print_cpu_state(int child);
