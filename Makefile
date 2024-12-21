@@ -33,6 +33,11 @@ ifeq ($(OS), Linux)
         TEST = demo-riscv64-linux
         OBJS += trace-linux.o linux-riscv64.o
     endif
+    ifeq ($(ARCH), mips)
+        # Linux on MIPS32 architecture
+        TEST = demo-mips32-linux
+        OBJS += trace-linux.o linux-mips32.o
+    endif
 endif
 ifeq ($(OS), FreeBSD)
     CFLAGS += -I/usr/local/include
