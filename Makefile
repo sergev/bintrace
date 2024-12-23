@@ -63,6 +63,11 @@ ifeq ($(OS), FreeBSD)
         TEST = demo-arm32-freebsd
         OBJS += trace-freebsd.o freebsd-arm32.o
     endif
+    ifeq ($(ARCH), riscv)
+        # FreeBSD on RISC-V 64-bit architecture
+        TEST = demo-riscv64-freebsd
+        OBJS += trace-freebsd.o freebsd-riscv64.o
+    endif
 endif
 ifeq ($(OS), Darwin)
     CFLAGS += -I/opt/homebrew/include
