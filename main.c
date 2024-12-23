@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 #elif __mips__
     int status = cs_open(CS_ARCH_MIPS, CS_MODE_MIPS32, &disasm);
 #elif __riscv
-    int status = cs_open(CS_ARCH_RISCV, CS_MODE_RISCV64, &disasm);
+    int status = cs_open(CS_ARCH_RISCV, CS_MODE_RISCV64 | CS_MODE_RISCVC, &disasm);
 #else
 #error "This architecture is not supported"
 #endif

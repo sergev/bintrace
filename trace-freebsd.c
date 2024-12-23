@@ -123,14 +123,14 @@ void trace(char *const argv[])
         fflush(stdout);
         errno = 0;
         if (ptrace(PT_STEP, child, NULL, 0) < 0) {
-            if (errno != EIO) {
+            if (errno != EIO && errno != EOPNOTSUPP) {
                 perror("PT_STEP");
                 exit(-1);
             } else {
                 // Single stepping is not supported for this architecture.
                 // Use syscall tracing instead.
                 errno = 0;
-                if (ptrace(PT_SYSCALL, child, NULL, 0) < 0) {
+                if (ptrace(PT_SYSCALL, child, (caddr_t)1, 0) < 0) {
                     perror("PT_SYSCALL");
                     exit(-1);
                 }

@@ -96,9 +96,6 @@ all:    $(PROG) $(TEST) demo.sh
 clean:
 	rm -f *.o *.dis *.trace $(PROG) demo-*-linux demo-*-macos demo-*-freebsd demo.sh
 
-%.o:    %.S
-	cpp $< | as -o $@ -
-
 $(PROG): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 	$(CODESIGN) $@

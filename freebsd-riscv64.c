@@ -33,7 +33,7 @@
 static void print_riscv64_instruction(int child, unsigned long long address)
 {
     // Read opcode from child process.
-    // Max instruction size for riscv64 architecture is 4 bytes.
+    // Max instruction size for riscv64 architecture is 6 bytes.
     uint64_t code[1];
     errno = 0;
     code[0] = ptrace(PT_READ_I, child, (void*)address, 0);
