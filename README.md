@@ -89,10 +89,9 @@ Support of single-stepping per operating system and machine architecture:
 Architecture | Linux | FreeBSD | MacOS
 -------------|-------|---------|------
 amd64/x86-64 | yes   | yes     | yes
-arm32        | -     | yes     | -
-arm64        | yes   | yes     | yes
 i386         | yes   | yes     | -
-mips32       | -     | yes     | -
+arm64        | yes   | yes     | yes
+arm32        | -     | yes     | -
 mips64       | -     | yes     | -
-powerpc64    | yes   | yes     | yes
-riscv64      | -     | yes     | -
+mips32       | -     | -       | -
+riscv64      | -     | -       | -
