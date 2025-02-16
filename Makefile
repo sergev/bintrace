@@ -37,6 +37,11 @@ ifeq ($(OS), Linux)
         TEST = demo-mips32-linux
         OBJS += trace-linux.o linux-mips32.o
     endif
+    ifeq ($(ARCH), ppc)
+        # Linux on PowerPC 32-bit architecture
+        TEST = demo-powerpc32-linux
+        OBJS += trace-linux.o linux-powerpc32.o
+    endif
 endif
 ifeq ($(OS), FreeBSD)
     CFLAGS += -I/usr/local/include
