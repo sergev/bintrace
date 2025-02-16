@@ -76,43 +76,44 @@ static void print_powerpc32_registers(const struct pt_regs *cur)
     if (cur->field != prev.field) { \
         fprintf(out, "    " name " = %#lx\n", cur->field); \
     }
-    PRINT_FIELD("      r0", regs[0]);
-    PRINT_FIELD("      r1", regs[1]);
-    PRINT_FIELD("      r2", regs[2]);
-    PRINT_FIELD("      r3", regs[3]);
-    PRINT_FIELD("      r4", regs[4]);
-    PRINT_FIELD("      r5", regs[5]);
-    PRINT_FIELD("      r6", regs[6]);
-    PRINT_FIELD("      r7", regs[7]);
-    PRINT_FIELD("      r8", regs[8]);
-    PRINT_FIELD("      r9", regs[9]);
-    PRINT_FIELD("     r10", regs[10]);
-    PRINT_FIELD("     r11", regs[11]);
-    PRINT_FIELD("     r12", regs[12]);
-    PRINT_FIELD("     r13", regs[13]);
-    PRINT_FIELD("     r14", regs[14]);
-    PRINT_FIELD("     r15", regs[15]);
-    PRINT_FIELD("     r16", regs[16]);
-    PRINT_FIELD("     r17", regs[17]);
-    PRINT_FIELD("     r18", regs[18]);
-    PRINT_FIELD("     r19", regs[19]);
-    PRINT_FIELD("     r20", regs[20]);
-    PRINT_FIELD("     r21", regs[21]);
-    PRINT_FIELD("     r22", regs[22]);
-    PRINT_FIELD("     r23", regs[23]);
-    PRINT_FIELD("     r24", regs[24]);
-    PRINT_FIELD("     r25", regs[25]);
-    PRINT_FIELD("     r26", regs[26]);
-    PRINT_FIELD("     r27", regs[27]);
-    PRINT_FIELD("     r28", regs[28]);
-    PRINT_FIELD("     r29", regs[29]);
-    PRINT_FIELD("     r30", regs[30]);
-    PRINT_FIELD("     r31", regs[31]);
-    PRINT_FIELD("      lo", lo);
-    PRINT_FIELD("      hi", hi);
-    PRINT_FIELD("badvaddr", cp0_badvaddr);
-    PRINT_FIELD("  status", cp0_status);
-    PRINT_FIELD("   cause", cp0_cause);
+    PRINT_FIELD("      r0", gpr[0]);
+    PRINT_FIELD("      r1", gpr[1]);
+    PRINT_FIELD("      r2", gpr[2]);
+    PRINT_FIELD("      r3", gpr[3]);
+    PRINT_FIELD("      r4", gpr[4]);
+    PRINT_FIELD("      r5", gpr[5]);
+    PRINT_FIELD("      r6", gpr[6]);
+    PRINT_FIELD("      r7", gpr[7]);
+    PRINT_FIELD("      r8", gpr[8]);
+    PRINT_FIELD("      r9", gpr[9]);
+    PRINT_FIELD("     r10", gpr[10]);
+    PRINT_FIELD("     r11", gpr[11]);
+    PRINT_FIELD("     r12", gpr[12]);
+    PRINT_FIELD("     r13", gpr[13]);
+    PRINT_FIELD("     r14", gpr[14]);
+    PRINT_FIELD("     r15", gpr[15]);
+    PRINT_FIELD("     r16", gpr[16]);
+    PRINT_FIELD("     r17", gpr[17]);
+    PRINT_FIELD("     r18", gpr[18]);
+    PRINT_FIELD("     r19", gpr[19]);
+    PRINT_FIELD("     r20", gpr[20]);
+    PRINT_FIELD("     r21", gpr[21]);
+    PRINT_FIELD("     r22", gpr[22]);
+    PRINT_FIELD("     r23", gpr[23]);
+    PRINT_FIELD("     r24", gpr[24]);
+    PRINT_FIELD("     r25", gpr[25]);
+    PRINT_FIELD("     r26", gpr[26]);
+    PRINT_FIELD("     r27", gpr[27]);
+    PRINT_FIELD("     r28", gpr[28]);
+    PRINT_FIELD("     r29", gpr[29]);
+    PRINT_FIELD("     r30", gpr[30]);
+    PRINT_FIELD("     r31", gpr[31]);
+
+    PRINT_FIELD("     msr", msr);
+    PRINT_FIELD("     ctr", ctr);
+    PRINT_FIELD("     link", link);
+    PRINT_FIELD("     xer", xer);
+    PRINT_FIELD("     ccr", ccr);
 #undef PRINT_FIELD
 
     prev = *cur;
@@ -142,5 +143,5 @@ void print_cpu_state(int child)
     }
     print_fpregs(&fpregs);
 #endif
-    print_powerpc32_instruction(child, regs.cp0_epc);
+    print_powerpc32_instruction(child, regs.nip);
 }

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 #elif __riscv
     int status = cs_open(CS_ARCH_RISCV, CS_MODE_RISCV64 | CS_MODE_RISCVC, &disasm);
 #elif __powerpc__
-    int status = cs_open(CS_ARCH_PPC, CS_MODE_32, &disasm);
+    int status = cs_open(CS_ARCH_PPC, CS_MODE_32 + CS_MODE_BIG_ENDIAN, &disasm);
 #else
 #error "This architecture is not supported"
 #endif
