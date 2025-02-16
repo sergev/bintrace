@@ -14,6 +14,7 @@ The following architectures are supported:
  * i386
  * arm64 aka aarch64
  * arm32 (limited features)
+ * powerpc32
 
 Unfortunately, Linux kernel does not support single-stepping on arm32
 and riscv64 processors. So only syscalls can be traced.
@@ -94,4 +95,6 @@ arm64        | yes   | yes     | yes
 arm32        | -     | yes     | -
 mips64       | -     | yes     | -
 mips32       | -     | -       | -
+powerpc64    | yes   | yes     | yes
+powerpc32    | yes   | yes     | yes
 riscv64      | -     | -       | -
