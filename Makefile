@@ -7,6 +7,7 @@ BRANDELF = size
 DEMO     = ./$(PROG)
 
 ifeq ($(OS), Linux)
+    ASFLAGS = -D__ASSEMBLY__ # for Android
     ifeq ($(ARCH), x86_64)
         # Linux on Intel 64-bit architecture
         TEST = demo-amd64-linux

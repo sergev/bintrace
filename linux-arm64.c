@@ -89,7 +89,7 @@ static void print_arm64_registers(const struct user_regs_struct *cur)
 
 #define PRINT_FIELD(name, field) \
     if (cur->field != prev.field) { \
-        fprintf(out, "    " name " = %#llx\n", cur->field); \
+        fprintf(out, "    " name " = %#lx\n", cur->field); \
     }
 
     PRINT_FIELD("    x0", regs[0]);
