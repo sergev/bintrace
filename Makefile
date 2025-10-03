@@ -23,8 +23,13 @@ ifeq ($(OS), Linux)
         TEST = demo-arm64-linux
         OBJS += trace-linux.o linux-arm64.o
     endif
+    ifeq ($(ARCH), armv8l)
+        # Linux on ARM32 v8 architecture
+        TEST = demo-arm32-linux
+        OBJS += trace-linux.o linux-arm32.o
+    endif
     ifeq ($(ARCH), armv7l)
-        # Linux on ARM32 architecture
+        # Linux on ARM32 v7 architecture
         TEST = demo-arm32-linux
         OBJS += trace-linux.o linux-arm32.o
     endif
